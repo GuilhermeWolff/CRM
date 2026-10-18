@@ -165,7 +165,14 @@ def popular_dados(db: Session, limpar: bool = False) -> dict:
         db.commit()
 
     if db.get(Configuracao, 1) is None:
-        db.add(Configuracao(id=1, empresa="Wolff Web Studio", responsavel="Guilherme Wolff"))
+        db.add(
+            Configuracao(
+                id=1,
+                empresa="GW Consultoria",
+                responsavel="Guilherme Wolff",
+                meta_mensal=Decimal(10000),
+            )
+        )
 
     if not db.scalar(select(func.count(Servico.id))):
         for nome, preco, descricao in SERVICOS_EXEMPLO:

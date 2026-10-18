@@ -1,7 +1,8 @@
-# CRM · Negociações de Sites
+# GW Consultoria · CRM de Negociações
 
-CRM pessoal para organizar as negociações de sites que você desenvolve: funil de vendas
-(kanban), clientes, follow-ups, tarefas, calculadora de orçamento e indicadores.
+CRM para organizar as negociações de sites e projetos web desenvolvidos pela
+**GW Consultoria**: funil de vendas (kanban), clientes, follow-ups, tarefas,
+calculadora de orçamento e indicadores.
 
 - **Backend:** Python 3.13 + FastAPI + SQLAlchemy 2 + PostgreSQL 17
 - **Frontend:** React 19 + TypeScript + Vite

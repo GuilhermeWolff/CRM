@@ -22,7 +22,7 @@ export function Configuracoes() {
   const salvar = async (evento: React.FormEvent) => {
     evento.preventDefault()
     await salvarConfig({
-      empresa: empresa.trim() || 'Meu Estúdio Web',
+      empresa: empresa.trim() || 'GW Consultoria',
       responsavel: responsavel.trim(),
       meta_mensal: Number(metaMensal) || 0,
     })

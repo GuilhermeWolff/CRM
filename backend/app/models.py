@@ -150,6 +150,6 @@ class Configuracao(Base):
     __tablename__ = "configuracoes"
 
     id: Mapped[int] = mapped_column(primary_key=True, default=1)
-    empresa: Mapped[str] = mapped_column(String(120), default="Meu Estúdio Web")
+    empresa: Mapped[str] = mapped_column(String(120), default="GW Consultoria")
     responsavel: Mapped[str | None] = mapped_column(String(120))
-    meta_mensal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=15000)
+    meta_mensal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=10000)

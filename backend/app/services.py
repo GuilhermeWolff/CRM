@@ -144,12 +144,12 @@ def mensagem_negociacao(neg: Negociacao, tipo: str = "proposta") -> str:
         return (
             f"Oi {contato}! Passando para saber se você conseguiu dar uma olhada na "
             f"proposta do projeto ({neg.tipo_site}) da {nome}. Qualquer dúvida sobre "
-            f"escopo, prazo ou valor, me fala que eu ajusto. 😉"
+            f"escopo, prazo ou valor, me fala que eu ajusto."
         )
 
     if tipo == "fechamento":
         return (
-            f"Oi {contato}! Fico feliz que o projeto da {nome} foi aprovado. 🎉\n"
+            f"Oi {contato}! Fico feliz que o projeto da {nome} foi aprovado.\n"
             f"Vamos começar o {neg.tipo_site}: prazo combinado {prazo}.\n"
             f"Próximos passos: envio do contrato e do briefing inicial. "
             f"Vou te passando o progresso por aqui."

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../api'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import { baixarJson, brl } from '../utils'
@@ -125,10 +126,12 @@ export function Configuracoes() {
           </div>
           <div className="agora">
             <button className="botao" onClick={baixarBackup}>
-              ⬇️ Baixar backup (JSON)
+              <Icone nome="baixar" tamanho={15} />
+              Baixar backup (JSON)
             </button>
             <button className="botao" onClick={() => arquivoRef.current?.click()}>
-              ⬆️ Restaurar backup
+              <Icone nome="subir" tamanho={15} />
+              Restaurar backup
             </button>
             <input
               ref={arquivoRef}
@@ -153,10 +156,12 @@ export function Configuracoes() {
           </div>
           <div className="agora">
             <button className="botao" onClick={gerarExemplo} disabled={ocupado}>
-              ✨ Gerar dados de exemplo
+              <Icone nome="raio" tamanho={15} />
+              Gerar dados de exemplo
             </button>
             <button className="botao botao-perigo" onClick={zerar} disabled={ocupado}>
-              🗑 Zerar todos os dados
+              <Icone nome="lixeira" tamanho={15} />
+              Zerar todos os dados
             </button>
           </div>
         </div>

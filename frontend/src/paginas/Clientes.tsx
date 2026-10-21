@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { FormCliente } from '../componentes/FormCliente'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Cliente, ClienteComTotais } from '../tipos'
@@ -72,7 +73,9 @@ export function Clientes() {
     <div>
       <div className="filtros">
         <div className="busca">
-          <span className="busca-icone">🔍</span>
+          <span className="busca-icone">
+            <Icone nome="busca" tamanho={15} />
+          </span>
           <input
             className="entrada"
             placeholder="Buscar cliente, contato, segmento..."
@@ -96,7 +99,9 @@ export function Clientes() {
 
       {lista.length === 0 ? (
         <div className="vazio">
-          <div className="vazio-icone">👥</div>
+          <div className="vazio-icone">
+            <Icone nome="usuarios" tamanho={22} />
+          </div>
           Nenhum cliente cadastrado ainda. Eles aparecem aqui automaticamente quando você cria uma negociação.
         </div>
       ) : (
@@ -115,20 +120,30 @@ export function Clientes() {
                   </div>
                 </div>
 
-                <div className="mini texto-suave empilhado" style={{ gap: 3 }}>
-                  <div>👤 {cliente.contato ?? '—'}</div>
-                  <div>
-                    📱{' '}
+                <div className="mini texto-suave empilhado" style={{ gap: 4 }}>
+                  <div className="linha-icone">
+                    <Icone nome="usuario" tamanho={14} />
+                    {cliente.contato ?? '—'}
+                  </div>
+                  <div className="linha-icone">
+                    <Icone nome="telefone" tamanho={14} />
                     {zap ? (
-                      <a href={zap} target="_blank" rel="noreferrer" className="texto-ok">
-                        {cliente.whatsapp} ↗
+                      <a href={zap} target="_blank" rel="noreferrer" className="texto-ok link-icone">
+                        {cliente.whatsapp}
+                        <Icone nome="externo" tamanho={12} />
                       </a>
                     ) : (
                       '—'
                     )}
                   </div>
-                  <div>✉️ {cliente.email ?? '—'}</div>
-                  <div>🔗 {cliente.site ?? '—'}</div>
+                  <div className="linha-icone">
+                    <Icone nome="email" tamanho={14} />
+                    {cliente.email ?? '—'}
+                  </div>
+                  <div className="linha-icone">
+                    <Icone nome="globo" tamanho={14} />
+                    {cliente.site ?? '—'}
+                  </div>
                 </div>
 
                 <div className="divisor mt" />
@@ -166,10 +181,11 @@ export function Clientes() {
                       setFormAberto(true)
                     }}
                   >
-                    ✏️ Editar
+                    <Icone nome="lapis" tamanho={14} />
+                    Editar
                   </button>
-                  <button className="botao botao-mini botao-perigo" onClick={() => excluir(cliente)}>
-                    🗑
+                  <button className="botao botao-mini botao-perigo" onClick={() => excluir(cliente)} title="Excluir">
+                    <Icone nome="lixeira" tamanho={15} />
                   </button>
                 </div>
               </div>

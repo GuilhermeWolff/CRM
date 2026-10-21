@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { FormTarefa } from '../componentes/FormTarefa'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Negociacao, Tarefa } from '../tipos'
@@ -110,7 +111,7 @@ export function Tarefas() {
         <div className="kpi ok">
           <div className="kpi-rotulo">Concluídas</div>
           <div className="kpi-valor">{tarefas.filter((tarefa) => tarefa.concluida).length}</div>
-          <div className="kpi-extra">bom trabalho 👏</div>
+          <div className="kpi-extra">bom trabalho</div>
         </div>
       </div>
 
@@ -138,7 +139,9 @@ export function Tarefas() {
 
       {lista.length === 0 ? (
         <div className="vazio">
-          <div className="vazio-icone">✅</div>
+          <div className="vazio-icone">
+            <Icone nome="check" tamanho={22} />
+          </div>
           Nada por aqui. Tudo em dia!
         </div>
       ) : (
@@ -182,8 +185,8 @@ export function Tarefas() {
                   {tarefa.prioridade}
                 </span>
                 {tarefa.negociacao_id && (
-                  <button className="botao botao-mini" onClick={() => abrirDetalhe(tarefa.negociacao_id!)}>
-                    👁
+                  <button className="botao botao-mini" onClick={() => abrirDetalhe(tarefa.negociacao_id!)} title="Abrir negociação">
+                    <Icone nome="olho" tamanho={15} />
                   </button>
                 )}
                 <button
@@ -192,11 +195,12 @@ export function Tarefas() {
                     setEmEdicao(tarefa)
                     setFormAberto(true)
                   }}
+                  title="Editar"
                 >
-                  ✏️
+                  <Icone nome="lapis" tamanho={14} />
                 </button>
-                <button className="botao botao-mini botao-perigo" onClick={() => excluir(tarefa)}>
-                  🗑
+                <button className="botao botao-mini botao-perigo" onClick={() => excluir(tarefa)} title="Excluir">
+                  <Icone nome="lixeira" tamanho={15} />
                 </button>
               </div>
             )

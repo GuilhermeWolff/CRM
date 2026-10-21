@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { Modal } from '../componentes/Modal'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Orcamento, Servico } from '../tipos'
@@ -262,11 +263,12 @@ export function Orcamentos() {
                           setEmEdicao(servico)
                           setFormAberto(true)
                         }}
+                        title="Editar"
                       >
-                        ✏️
+                        <Icone nome="lapis" tamanho={14} />
                       </button>
-                      <button className="botao botao-mini botao-perigo" onClick={() => excluirServico(servico)}>
-                        🗑
+                      <button className="botao botao-mini botao-perigo" onClick={() => excluirServico(servico)} title="Excluir">
+                        <Icone nome="lixeira" tamanho={15} />
                       </button>
                     </div>
                   </td>

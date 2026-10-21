@@ -2,38 +2,52 @@
    CRM de Negociações de Sites — estilos globais
    ========================================================================== */
 
+/* Tema único: escuro, com detalhes em vermelho. */
 :root {
-  --bg: #f1f4f9;
-  --painel: #ffffff;
-  --painel-2: #f7f9fc;
-  --painel-3: #eef2f9;
-  --borda: #e3e8f0;
-  --texto: #0f172a;
-  --suave: #64748b;
-  --accent: #4f46e5;
-  --accent-2: #7c3aed;
-  --accent-suave: #eef2ff;
-  --ok: #16a34a;
+  color-scheme: dark;
+
+  --bg: #09090b;
+  --painel: #121215;
+  --painel-2: #0d0d10;
+  --painel-3: #1b1b20;
+  --borda: #27272c;
+  --texto: #fafafa;
+  --suave: #a1a1aa;
+
+  /* Destaques em vermelho */
+  --accent: #dc2626;
+  --accent-2: #7f1017;
+  --accent-suave: rgba(220, 38, 38, 0.14);
+  --accent-claro: #f87171;
+
+  /* Cores de status (leitura rápida de ganho, alerta e perda) */
+  --ok: #22c55e;
   --alerta: #f59e0b;
-  --erro: #ef4444;
-  --info: #0ea5e9;
-  --sombra: 0 1px 2px rgba(15, 23, 42, 0.05), 0 12px 30px -20px rgba(15, 23, 42, 0.45);
+  --erro: #fb7185;
+  --info: #60a5fa;
+
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 34px -22px rgba(0, 0, 0, 0.95);
   --raio: 14px;
   --raio-sm: 10px;
 }
 
-[data-tema='escuro'] {
-  --bg: #080d19;
-  --painel: #101a2e;
-  --painel-2: #0c1526;
-  --painel-3: #16213b;
-  --borda: #223052;
-  --texto: #e9eefb;
-  --suave: #92a3c2;
-  --accent: #6d6afc;
-  --accent-2: #a855f7;
-  --accent-suave: #1a2340;
-  --sombra: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 34px -20px rgba(0, 0, 0, 0.9);
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c2c33;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3b44;
 }
 
 * {
@@ -69,8 +83,13 @@ h1, h2, h3, h4 {
 /* ------------------------------ Estrutura ------------------------------- */
 .app {
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.app.recolhida {
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 .barra-lateral {
@@ -118,6 +137,36 @@ h1, h2, h3, h4 {
   color: var(--suave);
 }
 
+.marca-texto {
+  min-width: 0;
+}
+
+.recolher {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--suave);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.recolher:hover {
+  background: var(--painel-3);
+  border-color: #33333b;
+  color: var(--texto);
+}
+
+.recolher svg {
+  transition: transform 0.2s ease;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -152,13 +201,15 @@ h1, h2, h3, h4 {
 
 .nav-item.ativo {
   background: var(--accent-suave);
-  color: var(--accent);
+  color: var(--accent-claro);
 }
 
 .nav-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
-  text-align: center;
-  font-size: 15px;
+  color: inherit;
 }
 
 .nav-badge {
@@ -178,6 +229,51 @@ h1, h2, h3, h4 {
   gap: 8px;
   font-size: 11.5px;
   color: var(--suave);
+}
+
+/* --------------------------- Menu retrátil ------------------------------ */
+.app.recolhida .barra-lateral {
+  padding: 18px 12px;
+}
+
+.app.recolhida .marca {
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 14px;
+}
+
+.app.recolhida .marca-texto,
+.app.recolhida .nav-rotulo,
+.app.recolhida .nav-texto,
+.app.recolhida .barra-rodape {
+  display: none;
+}
+
+.app.recolhida .recolher {
+  margin-left: 0;
+}
+
+.app.recolhida .recolher svg {
+  transform: rotate(180deg);
+}
+
+.app.recolhida .nav {
+  gap: 5px;
+}
+
+.app.recolhida .nav-item {
+  position: relative;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.app.recolhida .nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  padding: 0 5px;
+  font-size: 9.5px;
+  line-height: 15px;
 }
 
 .principal {
@@ -263,8 +359,7 @@ h1, h2, h3, h4 {
 }
 
 .botao-icone {
-  padding: 6px 9px;
-  font-size: 14px;
+  padding: 6px 8px;
   line-height: 1;
 }
 
@@ -545,13 +640,10 @@ h1, h2, h3, h4 {
 }
 
 .chip-ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
-.chip-alerta { background: color-mix(in srgb, var(--alerta) 18%, transparent); color: #b45309; }
+.chip-alerta { background: color-mix(in srgb, var(--alerta) 18%, transparent); color: #fbbf24; }
 .chip-erro { background: color-mix(in srgb, var(--erro) 14%, transparent); color: var(--erro); }
-.chip-info { background: color-mix(in srgb, var(--info) 15%, transparent); color: #0369a1; }
-.chip-accent { background: var(--accent-suave); color: var(--accent); }
-
-[data-tema='escuro'] .chip-alerta { color: #fbbf24; }
-[data-tema='escuro'] .chip-info { color: #38bdf8; }
+.chip-info { background: color-mix(in srgb, var(--info) 15%, transparent); color: #38bdf8; }
+.chip-accent { background: var(--accent-suave); color: var(--accent-claro); }
 
 .etiqueta-estagio {
   display: inline-flex;
@@ -670,9 +762,11 @@ h1, h2, h3, h4 {
 .busca-icone {
   position: absolute;
   left: 11px;
-  top: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
   color: var(--suave);
-  font-size: 14px;
+  pointer-events: none;
 }
 
 .campo {
@@ -1000,8 +1094,15 @@ h1, h2, h3, h4 {
 }
 
 .vazio-icone {
-  font-size: 26px;
-  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: var(--painel-3);
+  color: var(--suave);
 }
 
 /* -------------------------------- Toast --------------------------------- */
@@ -1078,7 +1179,7 @@ h1, h2, h3, h4 {
 .resultado-total .valor {
   font-size: 27px;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--accent-claro);
 }
 
 .grade-extras {
@@ -1139,6 +1240,32 @@ h1, h2, h3, h4 {
 .mb { margin-bottom: 12px; }
 .agora { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
+/* -------------------------------- Ícones -------------------------------- */
+.botao svg,
+.chip svg,
+.etiqueta-estagio svg,
+.toast svg {
+  flex: none;
+}
+
+.link-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.linha-icone {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.linha-icone > svg {
+  flex: none;
+  color: var(--suave);
+  opacity: 0.9;
+}
+
 /* ----------------------------- Responsivo ------------------------------- */
 @media (max-width: 1040px) {
   .calculadora {
@@ -1150,7 +1277,8 @@ h1, h2, h3, h4 {
 }
 
 @media (max-width: 900px) {
-  .app {
+  .app,
+  .app.recolhida {
     grid-template-columns: 1fr;
   }
   .barra-lateral {
@@ -1177,5 +1305,38 @@ h1, h2, h3, h4 {
   }
   .modal-fundo {
     padding: 10px;
+  }
+
+  /* No celular a barra é horizontal: o modo recolhido não se aplica. */
+  .recolher {
+    display: none;
+  }
+  .app.recolhida .barra-lateral {
+    padding: 18px 14px;
+  }
+  .app.recolhida .marca {
+    flex-direction: row;
+    gap: 10px;
+    padding: 4px 6px 14px;
+  }
+  .app.recolhida .marca-texto {
+    display: block;
+  }
+  .app.recolhida .nav-texto {
+    display: inline;
+  }
+  .app.recolhida .nav-item {
+    justify-content: flex-start;
+    padding: 9px 11px;
+  }
+  .app.recolhida .nav-badge {
+    position: static;
+    margin-left: auto;
+    padding: 1px 7px;
+    font-size: 10.5px;
+    line-height: normal;
+  }
+  .app.recolhida .barra-rodape {
+    display: flex;
   }
 }

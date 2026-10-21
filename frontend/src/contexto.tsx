@@ -10,6 +10,7 @@ import {
 import { api } from './api'
 import { DetalheNegociacao } from './componentes/DetalheNegociacao'
 import { FormNegociacao, type DadosNegociacao } from './componentes/FormNegociacao'
+import { Icone } from './componentes/Icone'
 import { useToast } from './toast'
 import type { ClienteComTotais, Configuracao, Meta, Negociacao } from './tipos'
 
@@ -131,7 +132,10 @@ export function CRMProvider({ children }: { children: ReactNode }) {
   if (erro) {
     return (
       <div className="carregando">
-        <h3>Não consegui falar com a API 😕</h3>
+        <div className="vazio-icone">
+          <Icone nome="alerta" tamanho={22} />
+        </div>
+        <h3>Não consegui falar com a API</h3>
         <p className="texto-suave">{erro}</p>
         <p className="texto-suave">
           Confira se o backend está rodando: <code>backend\dev.bat</code> (ou{' '}

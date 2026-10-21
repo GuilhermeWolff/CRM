@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { api } from './api'
+import { Icone, type NomeIcone } from './componentes/Icone'
 import { CRMProvider, useCRM } from './contexto'
 import { Clientes } from './paginas/Clientes'
 import { Configuracoes } from './paginas/Configuracoes'
@@ -22,21 +23,26 @@ const PAGINAS: Record<string, { titulo: string; sub: string }> = {
   '/configuracoes': { titulo: 'Configurações', sub: 'Empresa, meta mensal e backup dos dados' },
 }
 
-const MENU = [
-  { para: '/', icone: '📊', nome: 'Painel' },
-  { para: '/funil', icone: '🎯', nome: 'Funil de vendas' },
-  { para: '/negociacoes', icone: '📋', nome: 'Negociações' },
-  { para: '/clientes', icone: '👥', nome: 'Clientes' },
-  { para: '/tarefas', icone: '✅', nome: 'Tarefas' },
-  { para: '/orcamentos', icone: '🧮', nome: 'Orçamentos' },
-  { para: '/configuracoes', icone: '⚙️', nome: 'Configurações' },
+const MENU: { para: string; icone: NomeIcone; nome: string }[] = [
+  { para: '/', icone: 'painel', nome: 'Painel' },
+  { para: '/funil', icone: 'funil', nome: 'Funil de vendas' },
+  { para: '/negociacoes', icone: 'lista', nome: 'Negociações' },
+  { para: '/clientes', icone: 'usuarios', nome: 'Clientes' },
+  { para: '/tarefas', icone: 'check', nome: 'Tarefas' },
+  { para: '/orcamentos', icone: 'calculadora', nome: 'Orçamentos' },
+  { para: '/configuracoes', icone: 'ajustes', nome: 'Configurações' },
 ]
 
-function Shell({ tema, alternarTema }: { tema: string; alternarTema: () => void }) {
+function Shell() {
   const { config, versao, abrirFormNegociacao } = useCRM()
   const local = useLocation()
   const [atrasados, setAtrasados] = useState(0)
+  const [recolhida, setRecolhida] = useState(() => localStorage.getItem('crm-menu') === 'recolhido')
   const pagina = PAGINAS[local.pathname] ?? { titulo: 'CRM', sub: '' }
+
+  useEffect(() => {
+    localStorage.setItem('crm-menu', recolhida ? 'recolhido' : 'aberto')
+  }, [recolhida])
 
   useEffect(() => {
     api
@@ -46,14 +52,23 @@ function Shell({ tema, alternarTema }: { tema: string; alternarTema: () => void 
   }, [versao, local.pathname])
 
   return (
-    <div className="app">
+    <div className={classe('app', recolhida && 'recolhida')}>
       <aside className="barra-lateral">
         <div className="marca">
           <div className="marca-logo">GW</div>
-          <div>
+          <div className="marca-texto">
             <div className="marca-titulo">{config.empresa}</div>
             <div className="marca-sub">CRM de projetos web</div>
           </div>
+          <button
+            className="recolher"
+            onClick={() => setRecolhida((atual) => !atual)}
+            aria-label={recolhida ? 'Expandir menu' : 'Recolher menu'}
+            aria-expanded={!recolhida}
+            title={recolhida ? 'Expandir menu' : 'Recolher menu'}
+          >
+            <Icone nome="recolher" tamanho={15} />
+          </button>
         </div>
 
         <nav className="nav">
@@ -63,21 +78,19 @@ function Shell({ tema, alternarTema }: { tema: string; alternarTema: () => void 
               key={item.para}
               to={item.para}
               className={({ isActive }) => classe('nav-item', isActive && 'ativo')}
+              title={recolhida ? item.nome : undefined}
             >
-              <span className="nav-icone">{item.icone}</span>
-              {item.nome}
+              <span className="nav-icone">
+                <Icone nome={item.icone} tamanho={17} />
+              </span>
+              <span className="nav-texto">{item.nome}</span>
               {item.para === '/funil' && atrasados > 0 && <span className="nav-badge">{atrasados}</span>}
             </NavLink>
           ))}
         </nav>
 
         <div className="barra-rodape">
-          <button className="botao botao-mini" onClick={alternarTema}>
-            {tema === 'escuro' ? '☀️ Tema claro' : '🌙 Tema escuro'}
-          </button>
-          <div>
-            {config.responsavel ? `${config.responsavel} · ` : ''}v0.1
-          </div>
+          <div>{config.responsavel ? `${config.responsavel} · ` : ''}v0.1</div>
           <div className="dica">API: 127.0.0.1:8000</div>
         </div>
       </aside>
@@ -90,7 +103,8 @@ function Shell({ tema, alternarTema }: { tema: string; alternarTema: () => void 
           </div>
           <div className="topo-acoes">
             <button className="botao botao-primario" onClick={() => abrirFormNegociacao()}>
-              + Nova negociação
+              <Icone nome="mais" tamanho={16} />
+              Nova negociação
             </button>
           </div>
         </header>
@@ -110,17 +124,10 @@ function Shell({ tema, alternarTema }: { tema: string; alternarTema: () => void 
 }
 
 export default function App() {
-  const [tema, setTema] = useState(() => localStorage.getItem('crm-tema') ?? 'claro')
-
-  useEffect(() => {
-    document.documentElement.dataset.tema = tema
-    localStorage.setItem('crm-tema', tema)
-  }, [tema])
-
   return (
     <ToastProvider>
       <CRMProvider>
-        <Shell tema={tema} alternarTema={() => setTema((atual) => (atual === 'claro' ? 'escuro' : 'claro'))} />
+        <Shell />
       </CRMProvider>
     </ToastProvider>
   )

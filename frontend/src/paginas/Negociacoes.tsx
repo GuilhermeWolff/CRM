@@ -4,6 +4,7 @@ import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Negociacao } from '../tipos'
 import { brl, classe, dataBR, diasAte, baixarCsv, rotuloPrazo } from '../utils'
+import { Icone } from '../componentes/Icone'
 
 export function Negociacoes() {
   const { meta, versao, recarregar, abrirDetalhe, abrirFormNegociacao } = useCRM()
@@ -80,7 +81,9 @@ export function Negociacoes() {
     <div>
       <div className="filtros">
         <div className="busca">
-          <span className="busca-icone">🔍</span>
+          <span className="busca-icone">
+            <Icone nome="busca" tamanho={15} />
+          </span>
           <input
             className="entrada"
             placeholder="Buscar..."
@@ -113,13 +116,16 @@ export function Negociacoes() {
           ))}
         </select>
         <button className="botao botao-mini" onClick={exportar}>
-          ⬇️ Exportar CSV
+          <Icone nome="baixar" tamanho={14} />
+          Exportar CSV
         </button>
       </div>
 
       {lista.length === 0 ? (
         <div className="vazio">
-          <div className="vazio-icone">📋</div>
+          <div className="vazio-icone">
+            <Icone nome="lista" tamanho={22} />
+          </div>
           Nenhuma negociação encontrada com esses filtros.
         </div>
       ) : (
@@ -187,13 +193,13 @@ export function Negociacoes() {
                     <td>
                       <div className="acoes">
                         <button className="botao botao-mini" onClick={() => abrirDetalhe(negociacao.id)} title="Abrir detalhes">
-                          👁
+                          <Icone nome="olho" tamanho={15} />
                         </button>
                         <button className="botao botao-mini" onClick={() => abrirFormNegociacao(negociacao)} title="Editar">
-                          ✏️
+                          <Icone nome="lapis" tamanho={14} />
                         </button>
                         <button className="botao botao-mini botao-perigo" onClick={() => excluir(negociacao)} title="Excluir">
-                          🗑
+                          <Icone nome="lixeira" tamanho={15} />
                         </button>
                       </div>
                     </td>

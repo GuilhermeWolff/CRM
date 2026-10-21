@@ -77,8 +77,8 @@ CRM/
 │     ├─ contexto.tsx     # estado global (meta, clientes, modais)
 │     ├─ api.ts           # cliente HTTP
 │     ├─ tipos.ts         # tipos do domínio
-│     ├─ estilos.css      # tema claro/escuro
-│     ├─ componentes/     # modal, formulários, gaveta de detalhes
+│     ├─ estilos.css      # tema escuro (detalhes em vermelho)
+│     ├─ componentes/     # modal, formulários, gaveta de detalhes, ícones SVG
 │     └─ paginas/         # painel, funil, negociações, clientes, tarefas, orçamentos, configurações
 └─ banco/                 # scripts de start/stop do PostgreSQL
 ```

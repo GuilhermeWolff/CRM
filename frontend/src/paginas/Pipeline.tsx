@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api'
 import { MotivoPerda } from '../componentes/MotivoPerda'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Negociacao } from '../tipos'
@@ -59,7 +60,9 @@ export function Pipeline() {
     <div>
       <div className="filtros">
         <div className="busca">
-          <span className="busca-icone">🔍</span>
+          <span className="busca-icone">
+            <Icone nome="busca" tamanho={15} />
+          </span>
           <input
             className="entrada"
             placeholder="Buscar por cliente, contato, tipo de site..."

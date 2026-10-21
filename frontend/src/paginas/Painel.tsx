@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Painel as DadosPainel } from '../tipos'
@@ -96,7 +97,7 @@ export function Painel() {
         <div className="dica mt">
           {resumo.falta_meta > 0
             ? `Faltam ${brl(resumo.falta_meta)} para bater a meta. ${resumo.followups_semana} follow-up(s) nos próximos 7 dias.`
-            : 'Meta batida! 🎉 Que tal subir a régua para o próximo mês?'}
+            : 'Meta batida! Que tal subir a régua para o próximo mês?'}
         </div>
       </div>
 
@@ -152,7 +153,9 @@ export function Painel() {
           </div>
           {dados.followups.length === 0 ? (
             <div className="vazio">
-              <div className="vazio-icone">🎉</div>
+              <div className="vazio-icone">
+                <Icone nome="balao" tamanho={22} />
+              </div>
               Nenhum follow-up pendente nos próximos dias.
             </div>
           ) : (
@@ -179,7 +182,9 @@ export function Painel() {
           </div>
           {dados.tarefas.length === 0 ? (
             <div className="vazio">
-              <div className="vazio-icone">🗒️</div>
+              <div className="vazio-icone">
+                <Icone nome="check" tamanho={22} />
+              </div>
               Nada para esta semana. Aproveite para prospectar!
             </div>
           ) : (

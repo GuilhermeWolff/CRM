@@ -4,6 +4,7 @@ import type { Meta, Negociacao, NegociacaoDetalhe, Tarefa } from '../tipos'
 import { useToast } from '../toast'
 import { brl, classe, copiar, dataBR, dataHoraBR, diasAte, linkWhatsapp, rotuloPrazo } from '../utils'
 import { FormTarefa } from './FormTarefa'
+import { Icone } from './Icone'
 import { MotivoPerda } from './MotivoPerda'
 
 interface Props {
@@ -145,10 +146,11 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                 </div>
                 <div className="agora">
                   <button className="botao botao-mini" onClick={() => aoEditar(detalhe)}>
-                    ✏️ Editar
+                    <Icone nome="lapis" tamanho={14} />
+                    Editar
                   </button>
                   <button className="botao botao-icone" onClick={aoFechar} aria-label="Fechar">
-                    ✕
+                    <Icone nome="fechar" tamanho={16} />
                   </button>
                 </div>
               </header>
@@ -191,8 +193,9 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                     <div className="informacao-rotulo">WhatsApp</div>
                     <div className="informacao-valor">
                       {zap ? (
-                        <a href={zap} target="_blank" rel="noreferrer" className="texto-ok">
-                          {detalhe.whatsapp} ↗
+                        <a href={zap} target="_blank" rel="noreferrer" className="texto-ok link-icone">
+                          {detalhe.whatsapp}
+                          <Icone nome="externo" tamanho={13} />
                         </a>
                       ) : (
                         '—'
@@ -257,7 +260,8 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                         avisar(ok ? 'Mensagem copiada!' : 'Não foi possível copiar.', ok ? 'ok' : 'erro')
                       }}
                     >
-                      📋 Copiar
+                      <Icone nome="copiar" tamanho={14} />
+                      Copiar
                     </button>
                   </div>
                   <div className="agora mb">
@@ -304,8 +308,8 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                             {dataBR(tarefa.vencimento)} · prioridade {tarefa.prioridade}
                           </div>
                         </div>
-                        <button className="botao botao-mini botao-perigo" onClick={() => removerTarefa(tarefa)}>
-                          ✕
+                        <button className="botao botao-mini botao-perigo" onClick={() => removerTarefa(tarefa)} aria-label="Remover tarefa">
+                          <Icone nome="fechar" tamanho={14} />
                         </button>
                       </div>
                     ))}
@@ -342,7 +346,8 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                 </div>
 
                 <button className="botao botao-perigo" onClick={excluir}>
-                  🗑 Excluir negociação
+                  <Icone nome="lixeira" tamanho={15} />
+                  Excluir negociação
                 </button>
               </div>
             </>

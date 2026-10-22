@@ -75,6 +75,12 @@ export const mesCurto = (chave: string) => {
   return `${nomes[Number(mes) - 1]}/${ano.slice(2)}`
 }
 
+/** Nome legível do plano: essencial -> Essencial. */
+export const rotuloPlano = (plano?: string | null) => {
+  if (!plano) return ''
+  return plano.charAt(0).toUpperCase() + plano.slice(1)
+}
+
 export const baixarJson = (nomeArquivo: string, dados: unknown) => {
   const conteudo = JSON.stringify(dados, null, 2)
   const blob = new Blob([conteudo], { type: 'application/json' })

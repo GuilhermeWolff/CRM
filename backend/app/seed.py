@@ -17,14 +17,14 @@ def _d(dias: int) -> date:
 
 
 SERVICOS_EXEMPLO = [
-    ("Landing Page (1 página)", 1900, 1500, 3200, "Página única de conversão, formulário e WhatsApp."),
-    ("Site Institucional (até 5 páginas)", 4800, 3900, 8500, "Home, sobre, serviços, portfólio e contato."),
-    ("E-commerce / Loja Virtual", 8900, 7000, 18000, "Catálogo, carrinho, checkout e painel de pedidos."),
-    ("Sistema / Web App sob medida", 16000, 12000, 35000, "Área logada, banco de dados e regras de negócio."),
-    ("Manutenção mensal", 300, 300, 900, "Atualizações, backups e pequenos ajustes."),
-    ("SEO mensal", 450, 300, 1200, "Otimização de conteúdo e acompanhamento de posições."),
-    ("Identidade visual básica", 1200, 900, 2500, "Logo, paleta e tipografia."),
-    ("Migração / evolução de site antigo", 1200, 800, 3000, "Redesign e migração de conteúdo."),
+    ("Landing Page (1 página)", 3400, 2900, 6900, "Página única de conversão, formulário e WhatsApp."),
+    ("Site Institucional (até 5 páginas)", 6700, 5900, 13900, "Home, sobre, serviços, portfólio e contato."),
+    ("E-commerce / Loja Virtual", 11500, 9900, 23900, "Catálogo, carrinho, checkout e painel de pedidos."),
+    ("Sistema / Web App sob medida", 22000, 19000, 45000, "Área logada, banco de dados e regras de negócio."),
+    ("Manutenção mensal", 450, 300, 900, "Atualizações, backups e pequenos ajustes."),
+    ("SEO mensal", 650, 450, 1200, "Otimização de conteúdo e acompanhamento de posições."),
+    ("Identidade visual básica", 1800, 1200, 3500, "Logo, paleta e tipografia."),
+    ("Migração / evolução de site antigo", 3500, 2500, 7000, "Redesign e migração de conteúdo."),
 ]
 
 NEGOCIOS_EXEMPLO = [

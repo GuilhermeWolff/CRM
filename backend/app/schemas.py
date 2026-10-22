@@ -73,6 +73,7 @@ class NegociacaoBase(BaseModel):
     whatsapp: str | None = None
     email: str | None = None
     tipo_site: str = "Site Institucional"
+    plano: str | None = None
     valor: float = 0
     mensal: float = 0
     paginas: int = 1
@@ -107,6 +108,7 @@ class NegociacaoUpdate(BaseModel):
     whatsapp: str | None = None
     email: str | None = None
     tipo_site: str | None = None
+    plano: str | None = None
     valor: float | None = None
     mensal: float | None = None
     paginas: int | None = None
@@ -229,6 +231,7 @@ class OrcamentoEntrada(BaseModel):
     extras: list[str] = []
     desconto: float = 0
     horas: int | None = None
+    plano: str = "profissional"
 
 
 class ItemOrcamento(BaseModel):
@@ -244,23 +247,38 @@ class ItemOrcamento(BaseModel):
     total_maximo: float = 0
 
 
+class PlanoOrcamento(BaseModel):
+    id: str
+    nome: str
+    descricao: str = ""
+    resumo: str = ""
+    preco: float = 0
+    preco_escopo: float = 0
+    horas: int = 0
+    inclui: list[str] = []
+    extras_incluidos: list[str] = []
+    adicionais: list[ItemOrcamento] = []
+    valor_adicionais: float = 0
+    paginas_extras: int = 0
+    valor_paginas: float = 0
+    subtotal: float = 0
+    desconto_valor: float = 0
+    total: float = 0
+    mensal: float = 0
+    valor_hora: float = 0
+    recomendado: bool = False
+
+
 class OrcamentoSaida(BaseModel):
     tipo_site: str
-    base: float
-    base_minimo: float
-    base_maximo: float
+    paginas: int
     paginas_incluidas: int
     paginas_extras: int
     pagina_extra: float
-    pagina_extra_minimo: float
-    pagina_extra_maximo: float
-    paginas_extra: float
-    paginas_extra_minimo: float
-    paginas_extra_maximo: float
-    extras: list[ItemOrcamento]
+    plano_selecionado: str
+    planos: list[PlanoOrcamento]
+    base: float
     subtotal: float
-    subtotal_minimo: float
-    subtotal_maximo: float
     desconto: float
     desconto_valor: float
     total: float

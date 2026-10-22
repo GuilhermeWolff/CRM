@@ -55,6 +55,7 @@ class Negociacao(Base):
     email: Mapped[str | None] = mapped_column(String(160))
 
     tipo_site: Mapped[str] = mapped_column(String(60), default="Site Institucional")
+    plano: Mapped[str | None] = mapped_column(String(20))  # essencial | profissional | premium
     valor: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     mensal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
 

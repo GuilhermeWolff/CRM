@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import type { Meta, Negociacao, NegociacaoDetalhe, Tarefa } from '../tipos'
 import { useToast } from '../toast'
-import { brl, classe, copiar, dataBR, dataHoraBR, diasAte, linkWhatsapp, rotuloPrazo } from '../utils'
+import { brl, classe, copiar, dataBR, dataHoraBR, diasAte, linkWhatsapp, rotuloPlano, rotuloPrazo } from '../utils'
 import { FormTarefa } from './FormTarefa'
 import { Icone } from './Icone'
 import { MotivoPerda } from './MotivoPerda'
@@ -153,6 +153,7 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                   <h3 className="bloco-titulo">{detalhe.cliente_nome ?? detalhe.titulo}</h3>
                   <div className="bloco-sub">
                     #{detalhe.id} · {detalhe.tipo_site}
+                    {detalhe.plano ? ` · Plano ${rotuloPlano(detalhe.plano)}` : ''}
                   </div>
                 </div>
                 <div className="agora">
@@ -246,6 +247,10 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                   <div>
                     <div className="informacao-rotulo">Prazo de entrega</div>
                     <div className="informacao-valor">{dataBR(detalhe.prazo_entrega)}</div>
+                  </div>
+                  <div>
+                    <div className="informacao-rotulo">Plano</div>
+                    <div className="informacao-valor">{rotuloPlano(detalhe.plano) || '—'}</div>
                   </div>
                   <div>
                     <div className="informacao-rotulo">Páginas / telas</div>

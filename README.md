@@ -44,10 +44,10 @@ Para encerrar, feche as duas janelas abertas e rode `banco\stop.bat`.
   própria linha e exportação em CSV.
 - **Clientes** — cadastro com totais por cliente (fechado, em aberto, nº de negociações).
 - **Tarefas** — pendentes, atrasadas, de hoje e concluídas, com vínculo opcional a uma negociação.
-- **Orçamentos** — calculadora de preço com faixa de cada item (piso, alvo e teto de
-  mercado), horas estimadas e valor da sua hora; monta a proposta nos três níveis e abre
-  o cadastro completo já preenchido. Inclui a tabela de preços dos serviços com mínimo,
-  alvo e máximo.
+- **Orçamentos** — calculadora que monta **três planos por projeto** (Essencial,
+  Profissional e Premium), com o que cada um inclui, horas estimadas e valor da sua hora;
+  abre o cadastro completo já preenchido no plano escolhido. Inclui a tabela de preços dos
+  serviços nos três planos.
 - **Novo cadastro** — tela única com cliente, projeto, escopo/variações, valores
   (entrada, parcelas, forma de pagamento), funil e observações; mostra o card do funil
   em tempo real ao lado.
@@ -60,15 +60,34 @@ Para encerrar, feche as duas janelas abertas e rode `banco\stop.bat`.
 
 ## Como o preço é calculado
 
-Cada item da tabela tem três referências: **piso** (nunca descer abaixo), **alvo** (preço
-normal de venda) e **teto** (o máximo que o mercado paga com escopo premium). A calculadora
-soma os itens e devolve o total nos três níveis, as horas estimadas e o valor da sua hora.
+Todo projeto é vendido em **três planos**: Essencial, Profissional e Premium. A regra
+comercial é manter Essencial e Profissional com preços próximos (até 20% de diferença) e
+o Premium bem acima (cerca de 2x o Profissional), para ancorar a decisão do cliente.
+
+Cada plano tem preço fechado, horas de entrega e uma lista do que inclui. O que muda entre
+eles é o escopo:
+
+- **Essencial** — o necessário para o projeto funcionar.
+- **Profissional** — o recomendado: soma textos, SEO on-page, Analytics e ajustes.
+- **Premium** — operação completa: identidade visual, painel, integrações e 3 meses de
+  manutenção.
+
+Regras da calculadora:
 
 - Páginas incluídas por tipo: Landing 1, Institucional 5, E-commerce 8, Sistema 4 telas.
-- Extras fixos, por página (copywriting) ou percentuais (entrega urgente).
+- Página extra tem preço próprio por tipo (ex.: R$ 650 no e-commerce).
+- Extras fixos, por página (copywriting) ou percentuais (entrega urgente) entram apenas
+  nos planos que ainda não os incluem — sem cobrança duplicada.
 - Desconto máximo de 25%: acima disso, corte escopo em vez de preço.
 - Manutenção sugerida: 3% do projeto por mês, com piso de R$ 300.
 - Alerta quando a hora fica abaixo de R$ 90; entre R$ 90 e R$ 120 aparece como faixa de atenção.
+
+Para conferir as regras dos planos (proximidade e salto de preço em todos os tipos):
+
+```bash
+cd backend
+.\.venv\Scripts\python.exe verificar_precos.py
+```
 
 Os números ficam em `backend/app/constantes.py` (`TIPOS_PRECO` e `EXTRAS_CALCULADORA`).
 

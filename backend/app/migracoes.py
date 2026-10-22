@@ -10,6 +10,7 @@ from sqlalchemy.engine import Engine
 
 COLUNAS: list[tuple[str, str, str]] = [
     ("negociacoes", "paginas", "INTEGER NOT NULL DEFAULT 1"),
+    ("negociacoes", "plano", "VARCHAR(20)"),
     ("negociacoes", "extras", "TEXT"),
     ("negociacoes", "desconto", "NUMERIC(5, 2) NOT NULL DEFAULT 0"),
     ("negociacoes", "entrada", "NUMERIC(12, 2) NOT NULL DEFAULT 0"),

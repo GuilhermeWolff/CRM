@@ -26,6 +26,8 @@ def listas_fixas() -> dict:
         "fontes": C.FONTES,
         "formas_pagamento": C.FORMAS_PAGAMENTO,
         "base_por_tipo": C.BASE_POR_TIPO,
+        "planos": C.PLANOS,
+        "plano_padrao": C.PLANO_PADRAO,
         "precos": C.TIPOS_PRECO,
         "paginas_incluidas_por_tipo": C.PAGINAS_INCLUIDAS_POR_TIPO,
         "horas_por_tipo": C.HORAS_POR_TIPO,

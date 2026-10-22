@@ -8,20 +8,6 @@ import { useToast } from '../toast'
 import type { ItemOrcamento, Orcamento, Servico } from '../tipos'
 import { brl, classe } from '../utils'
 
-type Nivel = 'piso' | 'alvo' | 'teto'
-
-const ROTULO_NIVEL: Record<Nivel, string> = {
-  piso: 'Piso',
-  alvo: 'Alvo',
-  teto: 'Teto',
-}
-
-const AJUDA_NIVEL: Record<Nivel, string> = {
-  piso: 'mínimo aceitável',
-  alvo: 'preço recomendado',
-  teto: 'máximo do mercado',
-}
-
 export function Orcamentos() {
   const { meta, versao, recarregar } = useCRM()
   const { avisar } = useToast()
@@ -32,7 +18,7 @@ export function Orcamentos() {
   const [extras, setExtras] = useState<string[]>([])
   const [desconto, setDesconto] = useState(0)
   const [horas, setHoras] = useState<number | null>(null)
-  const [nivel, setNivel] = useState<Nivel>('alvo')
+  const [plano, setPlano] = useState(meta.plano_padrao ?? 'profissional')
   const [resultado, setResultado] = useState<Orcamento | null>(null)
 
   const [servicos, setServicos] = useState<Servico[]>([])
@@ -49,10 +35,10 @@ export function Orcamentos() {
 
   useEffect(() => {
     api
-      .orcamento({ tipo_site: tipo, paginas, extras, desconto, horas })
+      .orcamento({ tipo_site: tipo, paginas, extras, desconto, horas, plano })
       .then(setResultado)
       .catch((erro) => avisar((erro as Error).message, 'erro'))
-  }, [tipo, paginas, extras, desconto, horas, avisar])
+  }, [tipo, paginas, extras, desconto, horas, plano, avisar])
 
   const alternarExtra = (id: string) =>
     setExtras((atual) => (atual.includes(id) ? atual.filter((item) => item !== id) : [...atual, id]))
@@ -64,30 +50,22 @@ export function Orcamentos() {
     if (dados) setPaginas(dados.paginas_incluidas)
   }
 
-  const valorNivel = !resultado
-    ? 0
-    : nivel === 'piso'
-      ? resultado.piso
-      : nivel === 'teto'
-        ? resultado.teto
-        : resultado.total
-
-  const horaNivel = !resultado
-    ? 0
-    : nivel === 'piso'
-      ? resultado.valor_hora_piso
-      : nivel === 'teto'
-        ? resultado.valor_hora_teto
-        : resultado.valor_hora
+  const planoAtual =
+    resultado?.planos.find((item) => item.id === plano) ??
+    resultado?.planos.find((item) => item.recomendado) ??
+    resultado?.planos[0] ??
+    null
+  const valorPlano = planoAtual?.total ?? 0
+  const horaPlano = planoAtual?.valor_hora ?? 0
 
   const horaMinima = meta.valor_hora_minimo ?? 90
   const horaIdeal = meta.valor_hora_ideal ?? 120
-  const horaBaixa = horaNivel < horaMinima
-  const horaAtencao = !horaBaixa && horaNivel < horaIdeal
+  const horaBaixa = horaPlano < horaMinima
+  const horaAtencao = !horaBaixa && horaPlano < horaIdeal
 
   const criarNegociacao = () => {
-    if (!resultado) return
-    const escolhidos = resultado.extras
+    if (!resultado || !planoAtual) return
+    const escolhidos = planoAtual.adicionais
       .filter((extra) => extra.tipo !== 'mensal')
       .map((extra) => `${extra.nome}: ${brl(extra.total)}`)
       .join('\n')
@@ -96,17 +74,18 @@ export function Orcamentos() {
       state: {
         prefill: {
           tipo_site: tipo,
+          plano: planoAtual.id,
           paginas,
           extras: extras.join(','),
           desconto,
-          valor: valorNivel,
-          mensal: resultado.mensal,
+          valor: valorPlano,
+          mensal: planoAtual.mensal,
           notas:
-            `Orçamento pela calculadora (nível ${ROTULO_NIVEL[nivel].toLowerCase()}):\n` +
+            `Orçamento pela calculadora (plano ${planoAtual.nome}):\n` +
             `• ${tipo} — ${paginas} página(s)\n` +
             (escolhidos ? `${escolhidos}\n` : '') +
-            `• Horas estimadas: ${resultado.horas_estimadas}h (${brl(horaNivel)}/h)\n` +
-            `• Referências: piso ${brl(resultado.piso)} · alvo ${brl(resultado.total)} · teto ${brl(resultado.teto)}`,
+            `• Horas estimadas: ${planoAtual.horas}h (${brl(horaPlano)}/h)\n` +
+            `• Planos: ${resultado.planos.map((item) => `${item.nome} ${brl(item.total)}`).join(' · ')}`,
         },
       },
     })
@@ -135,8 +114,7 @@ export function Orcamentos() {
     }
   }
 
-  const itensTabela = (resultado?.extras ?? []).filter((item) => item.tipo !== 'mensal')
-  const mensalItem = (resultado?.extras ?? []).find((item) => item.tipo === 'mensal')
+  const itensMes = (planoAtual?.adicionais ?? []).filter((item) => item.tipo === 'mensal')
 
   return (
     <div className="empilhado">
@@ -146,7 +124,7 @@ export function Orcamentos() {
             <div>
               <div className="bloco-titulo">Calculadora de orçamento</div>
               <div className="bloco-sub">
-                Piso, alvo e teto de cada item — o teto é o máximo que o mercado paga
+                Três planos por projeto: Essencial, Profissional e Premium
               </div>
             </div>
           </div>
@@ -158,10 +136,11 @@ export function Orcamentos() {
                 <select className="selecao" value={tipo} onChange={(e) => trocarTipo(e.target.value)}>
                   {meta.tipos_site.map((item) => {
                     const dados = meta.precos?.[item]
+                    const valor = dados?.planos?.profissional?.preco
                     return (
                       <option key={item} value={item}>
                         {item}
-                        {dados ? ` — alvo ${brl(dados.base)}` : ''}
+                        {valor ? ` — a partir de ${brl(valor)}` : ''}
                       </option>
                     )
                   })}
@@ -244,98 +223,95 @@ export function Orcamentos() {
         </div>
 
         <div className="calculadora-resultado">
-          <div className="bloco-titulo mb">Resumo do orçamento</div>
-          {resultado && (
+          <div className="bloco-titulo mb">Três planos para o cliente</div>
+          {resultado && planoAtual && (
             <>
-              <div className="tabela-envolucro">
+              <div className="planos">
+                {resultado.planos.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={classe('plano-cartao', planoAtual.id === item.id && 'ativo')}
+                    onClick={() => setPlano(item.id)}
+                  >
+                    <span className="plano-topo">
+                      <span className="plano-nome">{item.nome}</span>
+                      {item.recomendado && <span className="chip chip-ok">recomendado</span>}
+                    </span>
+                    <span className="plano-preco">{brl(item.preco_escopo)}</span>
+                    <span className="dica">{item.resumo}</span>
+                    <span className="plano-rodape">
+                      ~{item.horas}h · {brl(item.valor_hora)}/h
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="dica mt">
+                Valores do pacote. Os extras marcados entram no plano escolhido e aparecem na composição
+                abaixo.
+              </div>
+
+              <details className="detalhes-plano mt">
+                <summary>O que inclui o plano {planoAtual.nome}</summary>
+                <ul className="lista-inclui">
+                  {planoAtual.inclui.map((linha) => (
+                    <li key={linha}>{linha}</li>
+                  ))}
+                </ul>
+              </details>
+
+              <div className="tabela-envolucro mt">
                 <table className="tabela tabela-faixas">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th className="direita">Piso</th>
-                      <th className="direita">Alvo</th>
-                      <th className="direita">Teto</th>
-                    </tr>
-                  </thead>
                   <tbody>
                     <tr>
-                      <td>
-                        {tipo}
-                        <span className="dica"> · {resultado.paginas_incluidas} pág.</span>
-                      </td>
-                      <td className="direita mini">{brl(resultado.base_minimo)}</td>
-                      <td className="direita mini negrito">{brl(resultado.base)}</td>
-                      <td className="direita mini">{brl(resultado.base_maximo)}</td>
+                      <td>Pacote {planoAtual.nome}</td>
+                      <td className="direita mini negrito">{brl(planoAtual.preco)}</td>
                     </tr>
-                    {resultado.paginas_extras > 0 && (
+                    {planoAtual.paginas_extras > 0 && (
                       <tr>
-                        <td>Páginas extras ({resultado.paginas_extras})</td>
-                        <td className="direita mini">{brl(resultado.paginas_extra_minimo)}</td>
-                        <td className="direita mini negrito">{brl(resultado.paginas_extra)}</td>
-                        <td className="direita mini">{brl(resultado.paginas_extra_maximo)}</td>
+                        <td>Páginas extras ({planoAtual.paginas_extras})</td>
+                        <td className="direita mini">{brl(planoAtual.valor_paginas)}</td>
                       </tr>
                     )}
-                    {itensTabela.map((item) => (
-                      <tr key={item.id}>
-                        <td>{rotuloItem(item)}</td>
-                        <td className="direita mini">{brl(item.total_minimo)}</td>
-                        <td className="direita mini negrito">{brl(item.total)}</td>
-                        <td className="direita mini">{brl(item.total_maximo)}</td>
-                      </tr>
-                    ))}
+                    {planoAtual.adicionais
+                      .filter((item) => item.tipo !== 'mensal')
+                      .map((item) => (
+                        <tr key={item.id}>
+                          <td>{rotuloItem(item)}</td>
+                          <td className="direita mini">{brl(item.total)}</td>
+                        </tr>
+                      ))}
                     <tr>
                       <td className="negrito">Subtotal</td>
-                      <td className="direita mini">{brl(resultado.subtotal_minimo)}</td>
-                      <td className="direita mini negrito">{brl(resultado.subtotal)}</td>
-                      <td className="direita mini">{brl(resultado.subtotal_maximo)}</td>
+                      <td className="direita mini negrito">{brl(planoAtual.subtotal)}</td>
                     </tr>
-                    {resultado.desconto > 0 && (
+                    {planoAtual.desconto_valor > 0 && (
                       <tr>
                         <td>Desconto ({resultado.desconto}%)</td>
-                        <td className="direita mini texto-erro">- {brl(resultado.subtotal_minimo - resultado.piso)}</td>
-                        <td className="direita mini texto-erro">- {brl(resultado.desconto_valor)}</td>
-                        <td className="direita mini texto-erro">- {brl(resultado.subtotal_maximo - resultado.teto)}</td>
+                        <td className="direita mini texto-erro">- {brl(planoAtual.desconto_valor)}</td>
                       </tr>
                     )}
+                    <tr>
+                      <td className="negrito">Total do plano</td>
+                      <td className="direita negrito">{brl(planoAtual.total)}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
 
-              <div className="niveis mt">
-                {(['piso', 'alvo', 'teto'] as Nivel[]).map((opcao) => (
-                  <button
-                    key={opcao}
-                    type="button"
-                    className={classe('nivel', nivel === opcao && 'ativo')}
-                    onClick={() => setNivel(opcao)}
-                  >
-                    <span className="nivel-rotulo">{ROTULO_NIVEL[opcao]}</span>
-                    <span className="nivel-valor">
-                      {brl(opcao === 'piso' ? resultado.piso : opcao === 'teto' ? resultado.teto : resultado.total)}
-                    </span>
-                    <span className="dica">{AJUDA_NIVEL[opcao]}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="resultado-total">
-                <span className="bloco-titulo">Proposta</span>
-                <span className="valor">{brl(valorNivel)}</span>
-              </div>
-
-              <div className="resultado-linha">
+              <div className="resultado-linha mt">
                 <span>Tempo estimado</span>
-                <span className="negrito">~{resultado.horas_estimadas}h</span>
+                <span className="negrito">~{planoAtual.horas}h</span>
               </div>
               <div className={classe('resultado-linha', 'ultima')}>
-                <span>Sua hora nesse nível</span>
+                <span>Sua hora nesse plano</span>
                 <span
                   className={classe(
                     'negrito',
                     horaBaixa ? 'texto-erro' : horaAtencao ? 'texto-alerta' : 'texto-ok',
                   )}
                 >
-                  {brl(horaNivel)}/h
+                  {brl(horaPlano)}/h
                 </span>
               </div>
 
@@ -347,16 +323,16 @@ export function Orcamentos() {
               )}
               {horaAtencao && (
                 <div className="aviso aviso-neutro mt">
-                  Entre {brl(horaMinima)}/h e {brl(horaIdeal)}/h. Fecha, mas é o mínimo aceitável — use o alvo
-                  ou o teto quando o cliente tiver urgência ou escopo maior.
+                  Entre {brl(horaMinima)}/h e {brl(horaIdeal)}/h. Fecha, mas é o mínimo aceitável — prefira o
+                  Profissional ou o Premium quando o cliente tiver urgência ou escopo maior.
                 </div>
               )}
 
-              {mensalItem && (
+              {itensMes.length > 0 && planoAtual.mensal > 0 && (
                 <div className="resultado-linha ultima mt">
                   <span>Manutenção sugerida</span>
                   <span className="negrito texto-ok">
-                    {brl(mensalItem.total_minimo)} a {brl(mensalItem.total_maximo)}/mês
+                    {brl(resultado.mensal_minimo)} a {brl(resultado.mensal_maximo)}/mês
                   </span>
                 </div>
               )}
@@ -364,10 +340,11 @@ export function Orcamentos() {
               <div className="empilhado mt">
                 <button className="botao botao-primario" onClick={criarNegociacao}>
                   <Icone nome="mais" tamanho={15} />
-                  Criar negociação com {brl(valorNivel)}
+                  Criar negociação no plano {planoAtual.nome} — {brl(planoAtual.total)}
                 </button>
                 <span className="dica">
-                  Abre o cadastro completo já preenchido para você ajustar cliente, prazo e condições.
+                  Abre o cadastro completo já preenchido com o plano escolhido para ajustar cliente, prazo e
+                  condições.
                 </span>
               </div>
             </>
@@ -380,7 +357,7 @@ export function Orcamentos() {
           <div>
             <div className="bloco-titulo">Tabela de preços</div>
             <div className="bloco-sub">
-              Piso, preço alvo e teto de cada serviço — o teto é o máximo que dá para cobrar com escopo premium
+              Preço de cada serviço nos três planos: Essencial, Profissional e Premium
             </div>
           </div>
           <button
@@ -399,9 +376,9 @@ export function Orcamentos() {
             <thead>
               <tr>
                 <th>Serviço</th>
-                <th className="direita">Piso</th>
-                <th className="direita">Alvo</th>
-                <th className="direita">Teto</th>
+                <th className="direita">Essencial</th>
+                <th className="direita">Profissional</th>
+                <th className="direita">Premium</th>
                 <th>Situação</th>
                 <th />
               </tr>
@@ -537,29 +514,29 @@ function ServicoModal({
       </label>
       <div className="campo-linha-3">
         <label className="campo">
-          <span className="campo-rotulo">Piso (R$)</span>
+          <span className="campo-rotulo">Essencial (R$)</span>
           <input
             className="entrada"
             type="number"
             step={50}
             value={precoMinimo}
             onChange={(e) => setPrecoMinimo(e.target.value)}
-            placeholder="não descer abaixo"
+            placeholder="preço de entrada"
           />
         </label>
         <label className="campo">
-          <span className="campo-rotulo">Alvo (R$)</span>
+          <span className="campo-rotulo">Profissional (R$)</span>
           <input className="entrada" type="number" step={50} value={preco} onChange={(e) => setPreco(e.target.value)} />
         </label>
         <label className="campo">
-          <span className="campo-rotulo">Teto (R$)</span>
+          <span className="campo-rotulo">Premium (R$)</span>
           <input
             className="entrada"
             type="number"
             step={50}
             value={precoMaximo}
             onChange={(e) => setPrecoMaximo(e.target.value)}
-            placeholder="máximo do mercado"
+            placeholder="preço mais alto"
           />
         </label>
       </div>

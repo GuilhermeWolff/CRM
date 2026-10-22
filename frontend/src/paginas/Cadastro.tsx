@@ -13,6 +13,7 @@ type Campos = Record<string, string>
 /** Valores vindos da calculadora de orçamento. */
 interface Prefill {
   tipo_site?: string
+  plano?: string
   paginas?: number
   extras?: string
   desconto?: number
@@ -32,6 +33,7 @@ function formularioInicial(tipoPadrao: string, paginas: number, prefill?: Prefil
 
     titulo: '',
     tipo_site: prefill?.tipo_site ?? tipoPadrao,
+    plano: prefill?.plano ?? 'profissional',
     paginas: String(prefill?.paginas ?? paginas),
     prazo_entrega: '',
     follow_up: hojeISO(),
@@ -103,6 +105,7 @@ export function Cadastro() {
     api
       .orcamento({
         tipo_site: form.tipo_site,
+        plano: form.plano || undefined,
         paginas: Math.max(1, Number(form.paginas) || 1),
         extras,
         desconto: Math.max(0, Number(form.desconto) || 0),
@@ -114,7 +117,7 @@ export function Cadastro() {
     return () => {
       ativo = false
     }
-  }, [form.tipo_site, form.paginas, form.desconto, extras])
+  }, [form.tipo_site, form.plano, form.paginas, form.desconto, extras])
 
   function preencher(neg: Negociacao) {
     setForm({
@@ -126,6 +129,7 @@ export function Cadastro() {
       site: '',
       titulo: neg.titulo ?? '',
       tipo_site: neg.tipo_site ?? 'Site Institucional',
+      plano: neg.plano ?? '',
       paginas: String(neg.paginas ?? 1),
       prazo_entrega: paraDataInput(neg.prazo_entrega),
       follow_up: paraDataInput(neg.follow_up),
@@ -197,14 +201,27 @@ export function Cadastro() {
   const desconto = Math.max(0, Number(form.desconto) || 0)
   const precoTipo = meta.precos?.[form.tipo_site]
   const teto = sugestao?.teto ?? 0
+  const planoNome = sugestao?.planos.find((item) => item.id === form.plano)?.nome ?? ''
   const acimaDoTeto = teto > 0 && valorFinal > teto
 
   const usarSugestao = () => {
     if (!sugestao) return
     setForm((atual) => ({
       ...atual,
+      plano: sugestao.plano_selecionado,
       valor: String(sugestao.total),
       mensal: sugestao.mensal > 0 ? String(sugestao.mensal) : atual.mensal,
+    }))
+  }
+
+  /** Escolher um plano preenche o valor do projeto com o total daquele plano. */
+  const escolherPlano = (id: string) => {
+    const plano = sugestao?.planos.find((item) => item.id === id)
+    setForm((atual) => ({
+      ...atual,
+      plano: id,
+      valor: plano ? String(plano.total) : atual.valor,
+      mensal: plano && plano.mensal > 0 ? String(plano.mensal) : atual.mensal,
     }))
   }
 
@@ -230,6 +247,7 @@ export function Cadastro() {
       whatsapp: form.whatsapp.trim() || null,
       email: form.email.trim() || null,
       tipo_site: form.tipo_site,
+      plano: form.plano || null,
       valor: Number(form.valor) || 0,
       mensal: Number(form.mensal) || 0,
       paginas: Math.max(1, Number(form.paginas) || 1),
@@ -375,12 +393,15 @@ export function Cadastro() {
                   value={form.tipo_site}
                   onChange={(evento) => alterar('tipo_site', evento.target.value)}
                 >
-                  {meta.tipos_site.map((tipo) => (
-                    <option key={tipo} value={tipo}>
-                      {tipo}
-                      {meta.precos?.[tipo] ? ` — alvo ${brl(meta.precos[tipo].base)}` : ''}
-                    </option>
-                  ))}
+                  {meta.tipos_site.map((tipo) => {
+                    const valor = meta.precos?.[tipo]?.planos?.profissional?.preco
+                    return (
+                      <option key={tipo} value={tipo}>
+                        {tipo}
+                        {valor ? ` — a partir de ${brl(valor)}` : ''}
+                      </option>
+                    )
+                  })}
                 </select>
               </label>
             </div>
@@ -467,6 +488,46 @@ export function Cadastro() {
           </div>
 
           <div className="empilhado">
+            {sugestao && sugestao.planos.length > 0 && (
+              <>
+                <div className="campo-rotulo">Plano oferecido ao cliente</div>
+                <div className="planos">
+                  {sugestao.planos.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={classe('plano-cartao', form.plano === item.id && 'ativo')}
+                      onClick={() => escolherPlano(item.id)}
+                    >
+                      <span className="plano-topo">
+                        <span className="plano-nome">{item.nome}</span>
+                        {item.recomendado && <span className="chip chip-ok">recomendado</span>}
+                      </span>
+                      <span className="plano-preco">{brl(item.preco_escopo)}</span>
+                      <span className="dica">{item.resumo}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="dica">
+                  O valor do projeto acompanha o plano escolhido, já com os extras que ele não inclui.
+                </div>
+                {(() => {
+                  const escolhido = sugestao.planos.find((item) => item.id === form.plano)
+                  if (!escolhido) return null
+                  return (
+                    <details className="detalhes-plano">
+                      <summary>O que inclui o plano {escolhido.nome}</summary>
+                      <ul className="lista-inclui">
+                        {escolhido.inclui.map((linha) => (
+                          <li key={linha}>{linha}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )
+                })()}
+              </>
+            )}
+
             <div className="campo-linha-3">
               <label className="campo">
                 <span className="campo-rotulo">Valor do projeto (R$)</span>
@@ -508,8 +569,9 @@ export function Cadastro() {
             </div>
 
             <div className="dica">
-              Tabela: piso <strong>{brl(sugestao?.piso ?? 0)}</strong> · alvo{' '}
-              <strong>{brl(sugestao?.total ?? 0)}</strong> · teto <strong>{brl(sugestao?.teto ?? 0)}</strong>
+              Planos: Essencial <strong>{brl(sugestao?.planos?.[0]?.preco_escopo ?? 0)}</strong> · Profissional{' '}
+              <strong>{brl(sugestao?.planos?.[1]?.preco_escopo ?? 0)}</strong> · Premium{' '}
+              <strong>{brl(sugestao?.planos?.[2]?.preco_escopo ?? 0)}</strong>
               {desconto > 0 && <> · com {desconto}% de desconto fica {brl(sugestao?.total ?? 0)}</>}
               {sugestao && Number(form.valor) !== sugestao.total && (
                 <button className="botao botao-mini" type="button" onClick={usarSugestao} style={{ marginLeft: 8 }}>
@@ -521,7 +583,7 @@ export function Cadastro() {
 
             {acimaDoTeto && (
               <div className="aviso">
-                Acima do teto de mercado ({brl(teto)}). Só sustente esse valor com escopo ou prazo que justifiquem.
+                Acima do plano Premium ({brl(teto)}). Só sustente esse valor com escopo ou prazo que justifiquem.
               </div>
             )}
 
@@ -663,6 +725,7 @@ export function Cadastro() {
             </div>
             <div className="cartao-sub">
               {form.tipo_site}
+              {planoNome ? ` · ${planoNome}` : ''}
               {form.contato ? ` · ${form.contato}` : ''}
             </div>
             <div className="dica">
@@ -686,7 +749,7 @@ export function Cadastro() {
           <div className="bloco-titulo mb">Resumo</div>
 
           <div className="resultado-linha">
-            <span>Tabela</span>
+            <span>Subtotal do plano</span>
             <span className="negrito">{brl(sugestao?.subtotal ?? 0)}</span>
           </div>
           {desconto > 0 && (
@@ -701,12 +764,12 @@ export function Cadastro() {
           </div>
 
           <div className="resultado-linha">
-            <span>Piso</span>
-            <span className="negrito">{brl(sugestao?.piso ?? 0)}</span>
+            <span>Essencial</span>
+            <span className="negrito">{brl(sugestao?.planos?.[0]?.preco_escopo ?? 0)}</span>
           </div>
           <div className="resultado-linha">
-            <span>Teto de mercado</span>
-            <span className="negrito">{brl(teto)}</span>
+            <span>Premium</span>
+            <span className="negrito">{brl(sugestao?.planos?.[2]?.preco_escopo ?? 0)}</span>
           </div>
           <div className="resultado-linha">
             <span>Sua hora ({sugestao?.horas_estimadas ?? 0}h)</span>

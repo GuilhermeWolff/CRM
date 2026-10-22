@@ -5,7 +5,7 @@ import { Icone } from '../componentes/Icone'
 import { useCRM } from '../contexto'
 import { useToast } from '../toast'
 import type { Negociacao } from '../tipos'
-import { brl, brlCompacto, classe, diasAte, rotuloPrazo } from '../utils'
+import { brl, brlCompacto, classe, diasAte, rotuloPlano, rotuloPrazo } from '../utils'
 
 function contarExtras(extras: string | null | undefined) {
   return (extras ?? '')
@@ -137,6 +137,7 @@ export function Pipeline() {
                       </div>
                       <div className="cartao-sub">
                         {negociacao.tipo_site}
+                        {negociacao.plano ? ` · ${rotuloPlano(negociacao.plano)}` : ''}
                         {negociacao.contato ? ` · ${negociacao.contato}` : ''}
                       </div>
                       {(negociacao.paginas > 1 || negociacao.extras) && (

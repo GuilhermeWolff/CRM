@@ -17,6 +17,7 @@ export interface Negociacao {
   whatsapp: string | null
   email: string | null
   tipo_site: string
+  plano: string | null
   valor: number
   mensal: number
   paginas: number
@@ -107,15 +108,20 @@ export interface ExtraCalculadora {
   horas: number
 }
 
-export interface PrecoTipo {
-  base: number
-  minimo: number
-  maximo: number
-  paginas_incluidas: number
+export interface PlanoTipo {
+  preco: number
   horas: number
+  resumo: string
+  inclui: string[]
+  extras_incluidos: string[]
+}
+
+export interface PrecoTipo {
+  paginas_incluidas: number
   pagina_extra: number
   pagina_extra_minimo: number
   pagina_extra_maximo: number
+  planos: Record<string, PlanoTipo>
 }
 
 export interface Meta {
@@ -124,6 +130,8 @@ export interface Meta {
   fontes: string[]
   formas_pagamento: string[]
   base_por_tipo: Record<string, number>
+  planos: { id: string; nome: string; descricao: string }[]
+  plano_padrao: string
   precos: Record<string, PrecoTipo>
   paginas_incluidas_por_tipo: Record<string, number>
   horas_por_tipo: Record<string, number>
@@ -222,23 +230,38 @@ export interface ItemOrcamento {
   total_maximo: number
 }
 
+export interface Plano {
+  id: string
+  nome: string
+  descricao: string
+  resumo: string
+  preco: number
+  preco_escopo: number
+  horas: number
+  inclui: string[]
+  extras_incluidos: string[]
+  adicionais: ItemOrcamento[]
+  valor_adicionais: number
+  paginas_extras: number
+  valor_paginas: number
+  subtotal: number
+  desconto_valor: number
+  total: number
+  mensal: number
+  valor_hora: number
+  recomendado: boolean
+}
+
 export interface Orcamento {
   tipo_site: string
-  base: number
-  base_minimo: number
-  base_maximo: number
+  paginas: number
   paginas_incluidas: number
   paginas_extras: number
   pagina_extra: number
-  pagina_extra_minimo: number
-  pagina_extra_maximo: number
-  paginas_extra: number
-  paginas_extra_minimo: number
-  paginas_extra_maximo: number
-  extras: ItemOrcamento[]
+  plano_selecionado: string
+  planos: Plano[]
+  base: number
   subtotal: number
-  subtotal_minimo: number
-  subtotal_maximo: number
   desconto: number
   desconto_valor: number
   total: number
@@ -264,6 +287,7 @@ export interface EntradaOrcamento {
   extras: string[]
   desconto: number
   horas?: number | null
+  plano?: string
 }
 
 export interface Backup {

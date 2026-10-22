@@ -96,6 +96,32 @@ export interface Configuracao {
   empresa: string
   responsavel: string | null
   meta_mensal: number
+  token_captura: string | null
+  url_publica: string | null
+}
+
+export interface Lead {
+  id: number
+  nome: string
+  empresa: string | null
+  email: string | null
+  whatsapp: string | null
+  produto: string | null
+  valor: number | null
+  mensagem: string | null
+  origem: string | null
+  pagina: string | null
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  status: string
+  negociacao_id: number | null
+  criado_em: string
+}
+
+export interface ConversaoLead {
+  lead: Lead
+  negociacao_id: number
 }
 
 export interface ExtraCalculadora {
@@ -128,6 +154,7 @@ export interface Meta {
   estagios: Estagio[]
   tipos_site: string[]
   fontes: string[]
+  status_lead: { id: string; nome: string }[]
   formas_pagamento: string[]
   base_por_tipo: Record<string, number>
   planos: { id: string; nome: string; descricao: string }[]
@@ -297,4 +324,5 @@ export interface Backup {
   negociacoes: unknown[]
   tarefas: unknown[]
   servicos: unknown[]
+  leads: unknown[]
 }

@@ -42,6 +42,8 @@ Para encerrar, feche as duas janelas abertas e rode `banco\stop.bat`.
   (a probabilidade é recalculada sozinha e a mudança vai para o histórico).
 - **Negociações** — lista com filtros por etapa, tipo e origem, edição de estágio na
   própria linha e exportação em CSV.
+- **Leads** — contatos capturados pelos formulários dos seus sites e lojas, com filtro por
+  situação, busca, botão de WhatsApp/e-mail e conversão em negociação com um clique.
 - **Clientes** — cadastro com totais por cliente (fechado, em aberto, nº de negociações).
 - **Tarefas** — pendentes, atrasadas, de hoje e concluídas, com vínculo opcional a uma negociação.
 - **Orçamentos** — calculadora que monta **três planos por projeto** (Essencial,
@@ -53,8 +55,48 @@ Para encerrar, feche as duas janelas abertas e rode `banco\stop.bat`.
   em tempo real ao lado.
 - **Gerenciar cada negociação** — linha do tempo de tudo que aconteceu, tarefas vinculadas
   e gerador de mensagens prontas para WhatsApp: proposta, follow-up, boas-vindas e cobrança.
-- **Configurações** — dados da empresa, meta mensal, backup/restauração em JSON, dados de
-  exemplo e reset.
+- **Configurações** — dados da empresa, meta mensal, código do formulário de captação de
+  leads, backup/restauração em JSON, dados de exemplo e reset.
+
+---
+
+## Captação de leads
+
+Qualquer site ou loja virtual pode enviar contatos para o CRM por uma API pública:
+
+```
+POST /api/leads
+X-Api-Key: <chave de captação>
+Content-Type: application/json
+
+{
+  "nome": "Maria Silva",
+  "empresa": "Loja da Maria",
+  "whatsapp": "(41) 99999-0000",
+  "email": "maria@exemplo.com",
+  "produto": "Vestido floral",
+  "valor": 189.90,
+  "mensagem": "Tem em estoque?",
+  "origem": "Loja",
+  "pagina": "https://lojadamaria.com/produto/vestido",
+  "utm_source": "instagram"
+}
+```
+
+- A chave fica em **Configurações → Captação de leads** (e em `/api/config`).
+- Também aceita formulário HTML comum (`application/x-www-form-urlencoded`), com a chave
+  na query string: `/api/leads?token=...`.
+- Campos opcionais: `empresa`, `email`, `whatsapp`, `produto`, `valor`, `mensagem`,
+  `origem`, `pagina`, `utm_source`, `utm_medium`, `utm_campaign`.
+- O campo escondido `website` funciona como armadilha anti-spam.
+- Cada envio aparece em **Leads**; o botão **Criar negociação** gera cliente + negociação
+  no estágio "Lead novo" já com produto, valor e mensagem nas observações.
+
+A tela de Configurações monta o HTML + JavaScript pronto para colar no site, já com a URL
+pública e a chave preenchidas. O código também lê `utm_source`, `utm_medium` e
+`utm_campaign` da URL e envia a página de origem, para você saber de onde veio o contato.
+O teste "Enviar lead de teste" grava um lead de verdade (origem "Teste interno") para você
+conferir o fluxo.
 
 ---
 
@@ -108,9 +150,11 @@ CRM/
 │  │  ├─ services.py      # regras: orçamento, mensagens, atividades
 │  │  ├─ seed.py          # dados de exemplo
 │  │  ├─ constantes.py    # etapas do funil, tipos de site, origens
-│  │  └─ routers/         # negociações, clientes, tarefas, serviços, painel, sistema
+│  │  └─ routers/         # negociações, leads, clientes, tarefas, serviços, painel, sistema
 │  ├─ requirements.txt
 │  └─ .env                # string de conexão do banco (não vai para o Git)
+├─ Dockerfile             # build do frontend + API numa imagem só
+├─ render.yaml            # publicação gratuita no Render
 ├─ frontend/
 │  └─ src/
 │     ├─ App.tsx          # layout, menu e rotas
@@ -132,7 +176,10 @@ Documentação interativa: <http://127.0.0.1:8000/docs>
 | Método | Rota | Para que serve |
 | --- | --- | --- |
 | GET | `/api/dashboard` | todos os indicadores do painel |
-| GET | `/api/meta` | etapas, tipos de site, origens, tabela da calculadora |
+| GET | `/api/meta` | etapas, tipos de site, origens, situações de lead, tabela da calculadora |
+| POST | `/api/leads` | **público**: recebe leads de sites com `X-Api-Key` |
+| GET/PUT/DELETE | `/api/leads` | listar, mudar situação e excluir leads |
+| POST | `/api/leads/{id}/converter` | criar cliente + negociação a partir do lead |
 | GET/POST | `/api/negociacoes` | listar (com filtros `q`, `estagio`, `tipo_site`, `fonte`) e criar |
 | GET/PUT/DELETE | `/api/negociacoes/{id}` | detalhe (com histórico e tarefas), editar, excluir |
 | POST | `/api/negociacoes/{id}/mover` | mudar de etapa (opcional `motivo_perda`) |
@@ -146,6 +193,63 @@ Documentação interativa: <http://127.0.0.1:8000/docs>
 | GET/POST | `/api/backup` | baixar / restaurar todos os dados |
 | POST | `/api/seed` | criar dados de exemplo (`?limpar=true` substitui) |
 | POST | `/api/reset` | apagar todos os dados |
+
+---
+
+## Publicar de graça (acessar de qualquer lugar)
+
+O CRM já está pronto para rodar como **um único serviço** (FastAPI serve a interface
+compilada). Há dois caminhos sem custo:
+
+### 1. Cloudflare Tunnel — mais rápido, usa a sua máquina
+
+Serve para mostrar ao cliente hoje. O computador precisa ficar ligado.
+
+1. Instale o `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
+2. Compile a interface e suba a API:
+
+   ```powershell
+   cd frontend
+   npm run build
+   cd ..\backend
+   $env:CRM_SENHA = "uma-senha-forte"
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+   ```
+
+3. Em outra janela:
+
+   ```powershell
+   cloudflared tunnel --url http://localhost:8000
+   ```
+
+4. Copie a URL `https://....trycloudflare.com`, cole em **Configurações → Endereço
+   público do CRM** e use essa URL no formulário do site.
+
+A URL gratuita muda a cada reinício. Para um endereço fixo, crie um túnel nomeado
+(gratuito) com um domínio seu no Cloudflare. Com `CRM_SENHA` definida, o CRM pede
+usuário e senha (padrão `admin`); o envio de leads continua público.
+
+### 2. Render + Neon — fica no ar sem a sua máquina
+
+O plano gratuito do Render dorme após ~15 minutos sem acesso (a primeira visita demora
+alguns segundos). O PostgreSQL gratuito do Render expira; por isso use o Neon.
+
+1. Crie um banco no **Neon** (https://neon.tech), plano free, e copie a connection string
+   (`postgresql://...`).
+2. No **Render** (https://render.com): New → Blueprint → selecione este repositório. O
+   arquivo `render.yaml` já configura o serviço Docker.
+3. Informe `DATABASE_URL` (a do Neon) e `CRM_SENHA` (a senha do CRM).
+4. Depois do deploy, use a URL `https://crm-gw-consultoria.onrender.com` no formulário.
+
+Alternativas gratuitas de banco: Supabase e a própria Neon. O plano free do Render não
+inclui disco persistente — por isso o banco precisa ser externo.
+
+Se a loja estiver recebendo visitas o tempo todo, o sono do plano free pode atrasar o
+primeiro envio de um lead. Nesse caso, mantenha o CRM no ar pelo Cloudflare Tunnel com a
+máquina ligada ou use o plano pago mais barato do Render.
+
+> **Segurança:** sem `CRM_SENHA`, qualquer pessoa com a URL acessa o CRM. Defina a senha
+> sempre que publicar. O endpoint de leads usa uma chave própria e não dá acesso ao resto.
 
 ---
 
@@ -181,8 +285,8 @@ Instaladas em modo usuário (sem administrador):
 
 ## Próximos passos possíveis
 
-- Autenticação (hoje é uso local, sem login)
+- Login com usuários separados (hoje é uma senha única via HTTP Basic)
 - Gráfico de evolução do pipeline ao longo do tempo
 - Anexos e propostas em PDF por negociação
 - Lembretes automáticos por e-mail/WhatsApp
-- Publicar a API (Fly.io/Render) e o frontend (Vercel) para acessar de qualquer lugar
+- Webhooks prontos para Shopify/WooCommerce (hoje o formulário e o POST genérico já funcionam)

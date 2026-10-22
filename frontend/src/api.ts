@@ -8,7 +8,9 @@ import type {
   Cliente,
   ClienteComTotais,
   Configuracao,
+  ConversaoLead,
   EntradaOrcamento,
+  Lead,
   Meta,
   Negociacao,
   NegociacaoDetalhe,
@@ -118,10 +120,37 @@ export const api = {
     requisitar<Servico>(`/api/servicos/${id}`, comCorpo(dados, 'PUT')),
   excluirServico: (id: number) => requisitar<void>(`/api/servicos/${id}`, { method: 'DELETE' }),
 
+  // --- leads (captação por sites externos) --------------------------------
+  leads: (filtros: Record<string, string> = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(filtros).filter(([, valor]) => valor !== ''),
+    ).toString()
+    return requisitar<Lead[]>(`/api/leads${query ? `?${query}` : ''}`)
+  },
+  atualizarLead: (id: number, dados: { status: string }) =>
+    requisitar<Lead>(`/api/leads/${id}`, comCorpo(dados, 'PUT')),
+  converterLead: (id: number) =>
+    requisitar<ConversaoLead>(`/api/leads/${id}/converter`, comCorpo({})),
+  excluirLead: (id: number) => requisitar<void>(`/api/leads/${id}`, { method: 'DELETE' }),
+  testarCaptura: (token: string) =>
+    requisitar<{ ok: boolean; id: number }>('/api/leads', {
+      method: 'POST',
+      headers: { 'X-Api-Key': token },
+      body: JSON.stringify({
+        nome: 'Teste de captação',
+        whatsapp: '(41) 99999-0000',
+        email: 'teste@exemplo.com',
+        produto: 'Lead de teste',
+        mensagem: 'Enviado pela tela de configurações do CRM.',
+        origem: 'Teste interno',
+      }),
+    }),
+
   // --- configurações e sistema -------------------------------------------
   config: () => requisitar<Configuracao>('/api/config'),
   salvarConfig: (dados: Partial<Configuracao>) =>
     requisitar<Configuracao>('/api/config', comCorpo(dados, 'PUT')),
+  rotacionarToken: () => requisitar<Configuracao>('/api/config/token', comCorpo({})),
   orcamento: (entrada: EntradaOrcamento) =>
     requisitar<Orcamento>('/api/orcamento', comCorpo(entrada)),
   gerarExemplo: (limpar = false) =>

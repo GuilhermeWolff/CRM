@@ -24,6 +24,7 @@ interface ContextoCRM {
   abrirFormNegociacao: (negociacao?: Partial<Negociacao> | null) => void
   abrirDetalhe: (id: number) => void
   salvarConfig: (dados: Partial<Configuracao>) => Promise<void>
+  recarregarConfig: () => Promise<void>
 }
 
 const Contexto = createContext<ContextoCRM | null>(null)
@@ -101,6 +102,14 @@ export function CRMProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const recarregarConfig = useCallback(async () => {
+    try {
+      setConfig(await api.config())
+    } catch (falha) {
+      avisar((falha as Error).message, 'erro')
+    }
+  }, [avisar])
+
   const salvarConfig = useCallback(
     async (dados: Partial<Configuracao>) => {
       try {
@@ -126,8 +135,18 @@ export function CRMProvider({ children }: { children: ReactNode }) {
       abrirFormNegociacao,
       abrirDetalhe: setDetalheId,
       salvarConfig,
+      recarregarConfig,
     }
-  }, [meta, config, clientes, versao, recarregar, abrirFormNegociacao, salvarConfig])
+  }, [
+    meta,
+    config,
+    clientes,
+    versao,
+    recarregar,
+    abrirFormNegociacao,
+    salvarConfig,
+    recarregarConfig,
+  ])
 
   if (erro) {
     return (

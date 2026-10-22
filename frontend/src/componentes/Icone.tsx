@@ -22,6 +22,7 @@ export type NomeIcone =
   | 'mais'
   | 'fechar'
   | 'balao'
+  | 'entrada'
   | 'alerta'
   | 'relogio'
   | 'raio'
@@ -121,6 +122,12 @@ const DESENHOS: Record<NomeIcone, ReactNode> = {
   fechar: <path d="M18 6 6 18M6 6l12 12" />,
   balao: (
     <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-2.8-.4L4 21l1.5-4.6A8.5 8.5 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z" />
+  ),
+  entrada: (
+    <>
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+      <path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z" />
+    </>
   ),
   alerta: (
     <>

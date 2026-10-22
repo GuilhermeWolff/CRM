@@ -34,6 +34,17 @@ FONTES: list[str] = [
     "Outro",
 ]
 
+# Situação de um lead capturado por formulário externo.
+STATUS_LEAD: list[dict] = [
+    {"id": "novo", "nome": "Novo"},
+    {"id": "contatado", "nome": "Contatado"},
+    {"id": "qualificado", "nome": "Qualificado"},
+    {"id": "convertido", "nome": "Convertido"},
+    {"id": "descartado", "nome": "Descartado"},
+]
+
+STATUS_LEAD_IDS = [s["id"] for s in STATUS_LEAD]
+
 FORMAS_PAGAMENTO: list[str] = [
     "Pix",
     "Transferência",

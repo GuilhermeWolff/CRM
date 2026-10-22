@@ -18,6 +18,8 @@ COLUNAS: list[tuple[str, str, str]] = [
     ("negociacoes", "forma_pagamento", "VARCHAR(40)"),
     ("servicos", "preco_minimo", "NUMERIC(12, 2)"),
     ("servicos", "preco_maximo", "NUMERIC(12, 2)"),
+    ("configuracoes", "token_captura", "VARCHAR(64)"),
+    ("configuracoes", "url_publica", "VARCHAR(200)"),
 ]
 
 

@@ -1544,3 +1544,64 @@ h1, h2, h3, h4 {
     display: flex;
   }
 }
+
+/* --------------------------- Leads capturados --------------------------- */
+.lead-cartao {
+  padding: 16px 18px;
+}
+
+.lead-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.lead-nome {
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lead-dados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 12.5px;
+  color: var(--suave);
+  margin-bottom: 10px;
+}
+
+.lead-dados span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lead-mensagem {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--accent);
+  background: var(--painel-2);
+  border-radius: 0 var(--raio-sm) var(--raio-sm) 0;
+  color: var(--texto);
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.lead-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.codigo-captura {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  min-height: 320px;
+  resize: vertical;
+}

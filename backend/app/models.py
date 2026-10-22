@@ -141,6 +141,37 @@ class Tarefa(Base):
         return self.negociacao.titulo if self.negociacao else None
 
 
+class Lead(Base):
+    """Contato capturado por formulários de sites/lojas (API pública)."""
+
+    __tablename__ = "leads"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nome: Mapped[str] = mapped_column(String(160), index=True)
+    empresa: Mapped[str | None] = mapped_column(String(160))
+    email: Mapped[str | None] = mapped_column(String(160))
+    whatsapp: Mapped[str | None] = mapped_column(String(40))
+    produto: Mapped[str | None] = mapped_column(String(200))
+    valor: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    mensagem: Mapped[str | None] = mapped_column(Text)
+    origem: Mapped[str | None] = mapped_column(String(80))
+    pagina: Mapped[str | None] = mapped_column(String(500))
+    utm_source: Mapped[str | None] = mapped_column(String(120))
+    utm_medium: Mapped[str | None] = mapped_column(String(120))
+    utm_campaign: Mapped[str | None] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(20), default="novo", index=True)
+    negociacao_id: Mapped[int | None] = mapped_column(
+        ForeignKey("negociacoes.id", ondelete="SET NULL")
+    )
+
+    criado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class Servico(Base):
     """Tabela de preços de referência (também usada como atalho no orçamento)."""
 
@@ -164,3 +195,7 @@ class Configuracao(Base):
     empresa: Mapped[str] = mapped_column(String(120), default="GW Consultoria")
     responsavel: Mapped[str | None] = mapped_column(String(120))
     meta_mensal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=10000)
+    # Chave usada pelos formulários externos para enviar leads.
+    token_captura: Mapped[str | None] = mapped_column(String(64))
+    # Endereço público do CRM (usado para montar o código de incorporação).
+    url_publica: Mapped[str | None] = mapped_column(String(200))

@@ -213,6 +213,7 @@ class ConfiguracaoUpdate(BaseModel):
     empresa: str | None = None
     responsavel: str | None = None
     meta_mensal: float | None = None
+    url_publica: str | None = None
 
 
 class ConfiguracaoOut(ORMBase):
@@ -220,6 +221,58 @@ class ConfiguracaoOut(ORMBase):
     empresa: str
     responsavel: str | None = None
     meta_mensal: float
+    token_captura: str | None = None
+    url_publica: str | None = None
+
+
+# --------------------------------------------------------------------------- #
+# Leads (captação por formulários externos)
+# --------------------------------------------------------------------------- #
+class LeadEntrada(BaseModel):
+    """Dados aceitos pelo endpoint público de captação."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    nome: str = Field(min_length=1, max_length=160)
+    empresa: str | None = Field(default=None, max_length=160)
+    email: str | None = Field(default=None, max_length=160)
+    whatsapp: str | None = Field(default=None, max_length=40)
+    produto: str | None = Field(default=None, max_length=200)
+    valor: float | None = None
+    mensagem: str | None = None
+    origem: str | None = Field(default=None, max_length=80)
+    pagina: str | None = Field(default=None, max_length=500)
+    utm_source: str | None = Field(default=None, max_length=120)
+    utm_medium: str | None = Field(default=None, max_length=120)
+    utm_campaign: str | None = Field(default=None, max_length=120)
+
+
+class LeadUpdate(BaseModel):
+    status: str | None = None
+
+
+class LeadOut(ORMBase):
+    id: int
+    nome: str
+    empresa: str | None = None
+    email: str | None = None
+    whatsapp: str | None = None
+    produto: str | None = None
+    valor: float | None = None
+    mensagem: str | None = None
+    origem: str | None = None
+    pagina: str | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+    status: str
+    negociacao_id: int | None = None
+    criado_em: datetime
+
+
+class ConversaoLead(BaseModel):
+    lead: LeadOut
+    negociacao_id: int
 
 
 # --------------------------------------------------------------------------- #

@@ -6,6 +6,7 @@ import { CRMProvider, useCRM } from './contexto'
 import { Cadastro } from './paginas/Cadastro'
 import { Clientes } from './paginas/Clientes'
 import { Configuracoes } from './paginas/Configuracoes'
+import { Leads } from './paginas/Leads'
 import { Negociacoes } from './paginas/Negociacoes'
 import { Orcamentos } from './paginas/Orcamentos'
 import { Painel } from './paginas/Painel'
@@ -18,10 +19,14 @@ const PAGINAS: Record<string, { titulo: string; sub: string }> = {
   '/': { titulo: 'Painel', sub: 'Visão geral das suas negociações' },
   '/funil': { titulo: 'Funil de vendas', sub: 'Arraste os cartões para avançar cada negociação' },
   '/negociacoes': { titulo: 'Negociações', sub: 'Todas as oportunidades em lista' },
+  '/leads': { titulo: 'Leads', sub: 'Contatos capturados pelos formulários dos seus sites' },
   '/clientes': { titulo: 'Clientes', sub: 'Quem já conversou com você' },
   '/tarefas': { titulo: 'Tarefas e follow-ups', sub: 'Não deixe ninguém sem resposta' },
   '/orcamentos': { titulo: 'Orçamentos', sub: 'Calculadora de preço e tabela de serviços' },
-  '/configuracoes': { titulo: 'Configurações', sub: 'Empresa, meta mensal e backup dos dados' },
+  '/configuracoes': {
+    titulo: 'Configurações',
+    sub: 'Empresa, meta mensal, captação de leads e backup dos dados',
+  },
   '/cadastro': { titulo: 'Novo cadastro', sub: 'Todas as informações da negociação em um só lugar' },
 }
 
@@ -29,6 +34,7 @@ const MENU: { para: string; icone: NomeIcone; nome: string }[] = [
   { para: '/', icone: 'painel', nome: 'Painel' },
   { para: '/funil', icone: 'funil', nome: 'Funil de vendas' },
   { para: '/negociacoes', icone: 'lista', nome: 'Negociações' },
+  { para: '/leads', icone: 'entrada', nome: 'Leads' },
   { para: '/clientes', icone: 'usuarios', nome: 'Clientes' },
   { para: '/tarefas', icone: 'check', nome: 'Tarefas' },
   { para: '/orcamentos', icone: 'calculadora', nome: 'Orçamentos' },
@@ -40,6 +46,7 @@ function Shell() {
   const local = useLocation()
   const navegar = useNavigate()
   const [atrasados, setAtrasados] = useState(0)
+  const [novosLeads, setNovosLeads] = useState(0)
   const [recolhida, setRecolhida] = useState(() => localStorage.getItem('crm-menu') === 'recolhido')
   const emCadastro = local.pathname.startsWith('/cadastro')
   const pagina = emCadastro
@@ -58,6 +65,13 @@ function Shell() {
       .painel()
       .then((dados) => setAtrasados(dados.resumo.atrasados))
       .catch(() => setAtrasados(0))
+  }, [versao, local.pathname])
+
+  useEffect(() => {
+    api
+      .leads()
+      .then((dados) => setNovosLeads(dados.filter((lead) => lead.status === 'novo').length))
+      .catch(() => setNovosLeads(0))
   }, [versao, local.pathname])
 
   return (
@@ -94,6 +108,7 @@ function Shell() {
               </span>
               <span className="nav-texto">{item.nome}</span>
               {item.para === '/funil' && atrasados > 0 && <span className="nav-badge">{atrasados}</span>}
+              {item.para === '/leads' && novosLeads > 0 && <span className="nav-badge">{novosLeads}</span>}
             </NavLink>
           ))}
         </nav>
@@ -124,6 +139,7 @@ function Shell() {
           <Route path="/" element={<Painel />} />
           <Route path="/funil" element={<Pipeline />} />
           <Route path="/negociacoes" element={<Negociacoes />} />
+          <Route path="/leads" element={<Leads />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/tarefas" element={<Tarefas />} />
           <Route path="/orcamentos" element={<Orcamentos />} />

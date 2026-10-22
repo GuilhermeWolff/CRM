@@ -1,5 +1,6 @@
 """Rotas de sistema: listas fixas, orçamento, configurações, backup e reset."""
 
+import secrets
 from datetime import date
 
 from fastapi import APIRouter, Depends
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 from .. import constantes as C
 from .. import schemas
 from ..database import get_db
-from ..models import Atividade, Cliente, Negociacao, Servico, Tarefa
+from ..models import Atividade, Cliente, Lead, Negociacao, Servico, Tarefa
 from ..seed import popular_dados
 from ..services import calcular_orcamento, obter_config
 from ..services import resolver_cliente
@@ -24,6 +25,7 @@ def listas_fixas() -> dict:
         "estagios": C.ESTAGIOS,
         "tipos_site": C.TIPOS_SITE,
         "fontes": C.FONTES,
+        "status_lead": C.STATUS_LEAD,
         "formas_pagamento": C.FORMAS_PAGAMENTO,
         "base_por_tipo": C.BASE_POR_TIPO,
         "planos": C.PLANOS,
@@ -63,6 +65,16 @@ def salvar_config(dados: schemas.ConfiguracaoUpdate, db: Session = Depends(get_d
     return config
 
 
+@router.post("/config/token", response_model=schemas.ConfiguracaoOut)
+def renovar_token_captura(db: Session = Depends(get_db)):
+    """Gera uma nova chave de captação (invalida a anterior)."""
+    config = obter_config(db)
+    config.token_captura = secrets.token_urlsafe(24)
+    db.commit()
+    db.refresh(config)
+    return config
+
+
 # --------------------------------------------------------------------------- #
 # Dados de exemplo
 # --------------------------------------------------------------------------- #
@@ -80,6 +92,7 @@ def exportar(db: Session = Depends(get_db)) -> dict:
     negociacoes = db.scalars(select(Negociacao)).all()
     tarefas = db.scalars(select(Tarefa)).all()
     servicos = db.scalars(select(Servico)).all()
+    leads = db.scalars(select(Lead)).all()
     config = obter_config(db)
 
     return {
@@ -152,6 +165,24 @@ def exportar(db: Session = Depends(get_db)) -> dict:
             }
             for s in servicos
         ],
+        "leads": [
+            {
+                "nome": lead.nome,
+                "empresa": lead.empresa,
+                "email": lead.email,
+                "whatsapp": lead.whatsapp,
+                "produto": lead.produto,
+                "valor": float(lead.valor) if lead.valor is not None else None,
+                "mensagem": lead.mensagem,
+                "origem": lead.origem,
+                "pagina": lead.pagina,
+                "utm_source": lead.utm_source,
+                "utm_medium": lead.utm_medium,
+                "utm_campaign": lead.utm_campaign,
+                "status": lead.status,
+            }
+            for lead in leads
+        ],
     }
 
 
@@ -168,6 +199,8 @@ def importar(dados: dict, db: Session = Depends(get_db)) -> dict:
 
     for item in dados.get("servicos") or []:
         db.add(Servico(**item))
+    for item in dados.get("leads") or []:
+        db.add(Lead(**item))
     db.flush()
 
     for item in dados.get("negociacoes") or []:
@@ -205,7 +238,7 @@ def _para_data(valor):
 
 
 def _limpar_tudo(db: Session) -> None:
-    for modelo in (Atividade, Tarefa, Negociacao, Cliente, Servico):
+    for modelo in (Lead, Atividade, Tarefa, Negociacao, Cliente, Servico):
         db.query(modelo).delete()
     db.commit()
 

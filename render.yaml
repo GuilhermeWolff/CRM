@@ -1,0 +1,23 @@
+# Publicação gratuita no Render (https://render.com).
+# 1. Crie um PostgreSQL gratuito no Neon (https://neon.tech) e copie a connection string.
+# 2. No Render: New > Blueprint > escolha este repositório.
+# 3. Preencha DATABASE_URL e CRM_SENHA quando o Render pedir.
+#
+# O plano free dorme depois de ~15 minutos sem acesso; a primeira visita
+# seguinte demora alguns segundos para acordar.
+services:
+  - type: web
+    name: crm-gw-consultoria
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: CRM_SENHA
+        sync: false
+      - key: CRM_USUARIO
+        value: admin
+      - key: AMBIENTE
+        value: producao

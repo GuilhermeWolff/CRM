@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import secrets
 from datetime import date
 from decimal import Decimal
 
@@ -17,9 +18,16 @@ from .models import Atividade, Cliente, Configuracao, Negociacao
 # --------------------------------------------------------------------------- #
 def obter_config(db: Session) -> Configuracao:
     cfg = db.get(Configuracao, 1)
+    alterou = False
     if cfg is None:
         cfg = Configuracao(id=1)
         db.add(cfg)
+        alterou = True
+    if not cfg.token_captura:
+        # Chave usada pelos formulários externos (gerada uma única vez).
+        cfg.token_captura = secrets.token_urlsafe(24)
+        alterou = True
+    if alterou:
         db.commit()
         db.refresh(cfg)
     return cfg
@@ -261,10 +269,9 @@ def _escopo_proposta(neg: Negociacao) -> str:
     return ", ".join(partes)
 
 
-def _condicoes_pagamento(neg: Negociacao) -> str:
+def _condicoes_pagamento(neg: Negociacao, valor: float) -> str:
     parcelas = int(neg.parcelas or 1)
     entrada = float(neg.entrada or 0)
-    valor = float(neg.valor or 0)
     forma = (neg.forma_pagamento or "").strip()
 
     if parcelas > 1:
@@ -277,10 +284,10 @@ def _condicoes_pagamento(neg: Negociacao) -> str:
     return ""
 
 
-def _planos_proposta(neg: Negociacao) -> str:
-    """Lista os três planos do tipo do projeto para a proposta."""
+def _orcamento_da_negociacao(neg: Negociacao) -> schemas.OrcamentoSaida | None:
+    """Recalcula os três planos a partir dos campos da negociação."""
     try:
-        orcamento = calcular_orcamento(
+        return calcular_orcamento(
             schemas.OrcamentoEntrada(
                 tipo_site=neg.tipo_site or "Outro",
                 paginas=int(neg.paginas or 1),
@@ -290,6 +297,32 @@ def _planos_proposta(neg: Negociacao) -> str:
             )
         )
     except Exception:  # pragma: no cover - proposta nunca deve quebrar
+        return None
+
+
+def _valor_proposta(neg: Negociacao) -> float:
+    """Valor gravado na negociação; se ainda estiver zerado, usa o plano escolhido.
+
+    Assim a proposta nunca sai com "R$ 0,00" quando o projeto só foi montado na
+    calculadora e o cadastro ainda não recebeu o investimento.
+    """
+    valor = float(neg.valor or 0)
+    if valor > 0:
+        return valor
+
+    orcamento = _orcamento_da_negociacao(neg)
+    if orcamento is None:
+        return 0.0
+    selecionado = next(
+        (p for p in orcamento.planos if p.id == orcamento.plano_selecionado), None
+    )
+    return float(selecionado.total) if selecionado else 0.0
+
+
+def _planos_proposta(neg: Negociacao) -> str:
+    """Lista os três planos do tipo do projeto para a proposta."""
+    orcamento = _orcamento_da_negociacao(neg)
+    if orcamento is None:
         return ""
 
     linhas = []
@@ -309,12 +342,13 @@ def mensagem_negociacao(neg: Negociacao, tipo: str = "proposta") -> str:
     contato = neg.contato or "tudo bem"
     nome = neg.cliente_nome or neg.titulo
     prazo = _data(neg.prazo_entrega)
-    valor = _brl(neg.valor)
+    valor_num = _valor_proposta(neg)
+    valor = _brl(valor_num)
     mensal = (
         f"\n• Manutenção mensal: {_brl(neg.mensal)}" if float(neg.mensal or 0) > 0 else ""
     )
     escopo = _escopo_proposta(neg)
-    pagamento = _condicoes_pagamento(neg)
+    pagamento = _condicoes_pagamento(neg, valor_num)
 
     if tipo == "followup":
         return (

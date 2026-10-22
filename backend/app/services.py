@@ -241,6 +241,39 @@ def _data(d: date | None) -> str:
     return d.strftime("%d/%m/%Y") if d else "a combinar"
 
 
+def _escopo_proposta(neg: Negociacao) -> str:
+    """Escopo escrito a partir dos campos estruturados (não usa as notas internas)."""
+    paginas = int(neg.paginas or 1)
+    partes = [
+        f"{neg.tipo_site} com {paginas} página(s)" if paginas > 1 else neg.tipo_site
+    ]
+    nomes = {extra["id"]: extra["nome"] for extra in C.EXTRAS_CALCULADORA}
+    for identificador in (neg.extras or "").split(","):
+        identificador = identificador.strip()
+        if not identificador:
+            continue
+        nome = nomes.get(identificador)
+        if nome:
+            partes.append(nome.split(" (")[0].strip().lower())
+    return ", ".join(partes)
+
+
+def _condicoes_pagamento(neg: Negociacao) -> str:
+    parcelas = int(neg.parcelas or 1)
+    entrada = float(neg.entrada or 0)
+    valor = float(neg.valor or 0)
+    forma = (neg.forma_pagamento or "").strip()
+
+    if parcelas > 1:
+        saldo = max(0.0, valor - entrada)
+        prefixo = f"entrada de {_brl(entrada)} + " if entrada > 0 else ""
+        texto = f"{prefixo}{parcelas}x de {_brl(saldo / parcelas)}"
+        return f"\n• Pagamento: {texto}" + (f" ({forma})" if forma else "")
+    if forma:
+        return f"\n• Pagamento: {forma}"
+    return ""
+
+
 def mensagem_negociacao(neg: Negociacao, tipo: str = "proposta") -> str:
     contato = neg.contato or "tudo bem"
     nome = neg.cliente_nome or neg.titulo
@@ -249,7 +282,8 @@ def mensagem_negociacao(neg: Negociacao, tipo: str = "proposta") -> str:
     mensal = (
         f"\n• Manutenção mensal: {_brl(neg.mensal)}" if float(neg.mensal or 0) > 0 else ""
     )
-    escopo = neg.notas.strip() if neg.notas else "conforme conversamos"
+    escopo = _escopo_proposta(neg)
+    pagamento = _condicoes_pagamento(neg)
 
     if tipo == "followup":
         return (
@@ -278,7 +312,7 @@ def mensagem_negociacao(neg: Negociacao, tipo: str = "proposta") -> str:
         f"Olá {contato}! Segue o resumo da proposta para o {neg.tipo_site} "
         f"da {nome}:\n"
         f"• Escopo: {escopo}\n"
-        f"• Investimento: {valor}{mensal}\n"
+        f"• Investimento: {valor}{mensal}{pagamento}\n"
         f"• Prazo de entrega: {prazo}\n\n"
         f"Inclui design responsivo, otimização para Google e treinamento de uso. "
         f"Válido por 15 dias. Qualquer ajuste, me fala!"

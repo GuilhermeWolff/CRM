@@ -498,11 +498,12 @@ export function Cadastro() {
                   className="entrada"
                   type="number"
                   min={0}
-                  max={100}
+                  max={meta.desconto_maximo ?? 25}
                   step={1}
                   value={form.desconto}
                   onChange={(evento) => alterar('desconto', evento.target.value)}
                 />
+                <span className="dica">Máximo recomendado: {meta.desconto_maximo ?? 25}%</span>
               </label>
             </div>
 

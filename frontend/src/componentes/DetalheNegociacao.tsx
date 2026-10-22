@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import type { Meta, Negociacao, NegociacaoDetalhe, Tarefa } from '../tipos'
 import { useToast } from '../toast'
@@ -24,6 +25,7 @@ const TIPOS_MENSAGEM = [
 
 export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }: Props) {
   const { avisar } = useToast()
+  const navegar = useNavigate()
   const [detalhe, setDetalhe] = useState<NegociacaoDetalhe | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [nota, setNota] = useState('')
@@ -123,6 +125,15 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
   const estagio = meta.estagios.find((e) => e.id === detalhe?.estagio)
   const zap = linkWhatsapp(detalhe?.whatsapp)
   const dias = diasAte(detalhe?.follow_up)
+  const nomesExtras = (detalhe?.extras ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((id) => meta.extras_calculadora.find((extra) => extra.id === id)?.nome ?? id)
+    .join(', ')
+  const entrada = detalhe?.entrada ?? 0
+  const parcelas = detalhe?.parcelas ?? 1
+  const valorParcela = parcelas > 1 ? Math.max(0, (detalhe?.valor ?? 0) - entrada) / parcelas : 0
 
   return (
     <>
@@ -145,6 +156,17 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                   </div>
                 </div>
                 <div className="agora">
+                  <button
+                    className="botao botao-mini"
+                    onClick={() => {
+                      aoFechar()
+                      navegar(`/cadastro/${detalhe.id}`)
+                    }}
+                    title="Abrir o cadastro completo"
+                  >
+                    <Icone nome="lista" tamanho={14} />
+                    Cadastro
+                  </button>
                   <button className="botao botao-mini" onClick={() => aoEditar(detalhe)}>
                     <Icone nome="lapis" tamanho={14} />
                     Editar
@@ -225,6 +247,29 @@ export function DetalheNegociacao({ id, meta, aoFechar, aoAtualizar, aoEditar }:
                     <div className="informacao-rotulo">Prazo de entrega</div>
                     <div className="informacao-valor">{dataBR(detalhe.prazo_entrega)}</div>
                   </div>
+                  <div>
+                    <div className="informacao-rotulo">Páginas / telas</div>
+                    <div className="informacao-valor">{detalhe.paginas ?? 1}</div>
+                  </div>
+                  <div>
+                    <div className="informacao-rotulo">Escopo extra</div>
+                    <div className="informacao-valor">{nomesExtras || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="informacao-rotulo">Condições</div>
+                    <div className="informacao-valor">
+                      {parcelas > 1
+                        ? `${entrada > 0 ? `entrada ${brl(entrada)} + ` : ''}${parcelas}x de ${brl(valorParcela)}`
+                        : 'à vista'}
+                      {detalhe.forma_pagamento ? ` · ${detalhe.forma_pagamento}` : ''}
+                    </div>
+                  </div>
+                  {detalhe.desconto > 0 && (
+                    <div>
+                      <div className="informacao-rotulo">Desconto</div>
+                      <div className="informacao-valor">{detalhe.desconto}%</div>
+                    </div>
+                  )}
                   <div>
                     <div className="informacao-rotulo">Criada em</div>
                     <div className="informacao-valor">{dataBR(detalhe.criado_em)}</div>

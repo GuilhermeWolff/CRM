@@ -11,9 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import models  # noqa: F401  (garante o registro dos modelos)
 from .config import settings
 from .database import Base, engine
+from .migracoes import aplicar as aplicar_migracoes
 from .routers import clientes, dashboard, negociacoes, servicos, sistema, tarefas
 
 Base.metadata.create_all(bind=engine)
+aplicar_migracoes(engine)
 
 app = FastAPI(
     title="CRM de Projetos Web",

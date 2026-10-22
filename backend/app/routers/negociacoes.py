@@ -104,7 +104,15 @@ def criar(dados: schemas.NegociacaoCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(erro)) from erro
 
     titulo = (dados.titulo or "").strip() or (cliente.nome if cliente else "Nova negociação")
-    valores = dados.model_dump(exclude={"titulo", "cliente_id", "cliente_nome"})
+    valores = dados.model_dump(
+        exclude={"titulo", "cliente_id", "cliente_nome", "segmento", "site"}
+    )
+
+    if cliente is not None:
+        if dados.segmento:
+            cliente.segmento = dados.segmento
+        if dados.site:
+            cliente.site = dados.site
 
     neg = Negociacao(titulo=titulo, cliente_id=cliente.id if cliente else None, **valores)
     if dados.probabilidade in (None, 0, 10) and dados.estagio != "lead":
@@ -131,6 +139,30 @@ def atualizar(
     neg = _buscar(db, negociacao_id)
     campos = dados.model_dump(exclude_unset=True)
 
+    # Campos do cadastro do cliente (não são colunas da negociação)
+    segmento = campos.pop("segmento", None)
+    site = campos.pop("site", None)
+
+    if "cliente_nome" in campos:
+        nome = (campos.pop("cliente_nome") or "").strip()
+        atual = neg.cliente
+        if not nome:
+            campos["cliente_id"] = None
+        elif atual is not None and atual.nome.strip().lower() == nome.lower():
+            campos["cliente_id"] = atual.id
+        else:
+            existente = db.scalar(
+                select(Cliente).where(func.lower(Cliente.nome) == nome.lower())
+            )
+            if existente is not None:
+                campos["cliente_id"] = existente.id
+            elif atual is not None:
+                # Renomeou o cliente dentro do cadastro da negociação
+                atual.nome = nome
+                campos["cliente_id"] = atual.id
+            else:
+                campos["cliente_id"] = resolver_cliente(db, None, nome).id
+
     if "estagio" in campos:
         _validar_estagio(campos["estagio"])
 
@@ -143,6 +175,14 @@ def atualizar(
 
     for campo, valor in campos.items():
         setattr(neg, campo, valor)
+
+    id_cliente = campos.get("cliente_id", neg.cliente_id)
+    cliente_final = db.get(Cliente, id_cliente) if id_cliente else None
+    if cliente_final is not None:
+        if segmento:
+            cliente_final.segmento = segmento
+        if site:
+            cliente_final.site = site
 
     if "estagio" in campos and campos["estagio"] != estagio_anterior:
         _aplicar_estagio(neg, campos["estagio"], sobrescrever_prob="probabilidade" not in campos)

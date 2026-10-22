@@ -19,6 +19,12 @@ export interface Negociacao {
   tipo_site: string
   valor: number
   mensal: number
+  paginas: number
+  extras: string | null
+  desconto: number
+  entrada: number
+  parcelas: number
+  forma_pagamento: string | null
   estagio: string
   probabilidade: number
   fonte: string | null
@@ -78,6 +84,8 @@ export interface Servico {
   id: number
   nome: string
   preco: number
+  preco_minimo: number | null
+  preco_maximo: number | null
   descricao: string | null
   ativo: boolean
 }
@@ -94,16 +102,37 @@ export interface ExtraCalculadora {
   nome: string
   tipo: string
   valor: number
+  minimo: number
+  maximo: number
+  horas: number
+}
+
+export interface PrecoTipo {
+  base: number
+  minimo: number
+  maximo: number
+  paginas_incluidas: number
+  horas: number
+  pagina_extra: number
+  pagina_extra_minimo: number
+  pagina_extra_maximo: number
 }
 
 export interface Meta {
   estagios: Estagio[]
   tipos_site: string[]
   fontes: string[]
+  formas_pagamento: string[]
   base_por_tipo: Record<string, number>
+  precos: Record<string, PrecoTipo>
+  paginas_incluidas_por_tipo: Record<string, number>
+  horas_por_tipo: Record<string, number>
   extras_calculadora: ExtraCalculadora[]
   valor_por_pagina_extra: number
   paginas_incluidas: number
+  desconto_maximo: number
+  valor_hora_minimo: number
+  valor_hora_ideal: number
 }
 
 export interface ResumoPainel {
@@ -180,17 +209,53 @@ export interface Painel {
   responsavel: string | null
 }
 
+export interface ItemOrcamento {
+  id: string
+  nome: string
+  tipo: string
+  quantidade: number
+  valor: number
+  total: number
+  minimo: number
+  total_minimo: number
+  maximo: number
+  total_maximo: number
+}
+
 export interface Orcamento {
+  tipo_site: string
   base: number
+  base_minimo: number
+  base_maximo: number
+  paginas_incluidas: number
+  paginas_extras: number
+  pagina_extra: number
+  pagina_extra_minimo: number
+  pagina_extra_maximo: number
   paginas_extra: number
-  extras: { id: string; nome: string; valor: number; tipo: string }[]
+  paginas_extra_minimo: number
+  paginas_extra_maximo: number
+  extras: ItemOrcamento[]
   subtotal: number
+  subtotal_minimo: number
+  subtotal_maximo: number
+  desconto: number
   desconto_valor: number
   total: number
-  mensal: number
+  piso: number
+  teto: number
   faixa_min: number
   faixa_max: number
+  mensal: number
+  mensal_minimo: number
+  mensal_maximo: number
   horas_estimadas: number
+  valor_hora: number
+  valor_hora_piso: number
+  valor_hora_teto: number
+  valor_hora_minimo: number
+  valor_hora_ideal: number
+  desconto_maximo: number
 }
 
 export interface EntradaOrcamento {
@@ -198,6 +263,7 @@ export interface EntradaOrcamento {
   paginas: number
   extras: string[]
   desconto: number
+  horas?: number | null
 }
 
 export interface Backup {

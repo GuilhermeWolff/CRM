@@ -75,6 +75,12 @@ class NegociacaoBase(BaseModel):
     tipo_site: str = "Site Institucional"
     valor: float = 0
     mensal: float = 0
+    paginas: int = 1
+    extras: str | None = None
+    desconto: float = 0
+    entrada: float = 0
+    parcelas: int = 1
+    forma_pagamento: str | None = None
     estagio: str = "lead"
     probabilidade: int = 10
     fonte: str | None = None
@@ -87,17 +93,28 @@ class NegociacaoCreate(NegociacaoBase):
     titulo: str | None = None
     cliente_id: int | None = None
     cliente_nome: str | None = None
+    segmento: str | None = None
+    site: str | None = None
 
 
 class NegociacaoUpdate(BaseModel):
     titulo: str | None = None
     cliente_id: int | None = None
+    cliente_nome: str | None = None
+    segmento: str | None = None
+    site: str | None = None
     contato: str | None = None
     whatsapp: str | None = None
     email: str | None = None
     tipo_site: str | None = None
     valor: float | None = None
     mensal: float | None = None
+    paginas: int | None = None
+    extras: str | None = None
+    desconto: float | None = None
+    entrada: float | None = None
+    parcelas: int | None = None
+    forma_pagamento: str | None = None
     estagio: str | None = None
     probabilidade: int | None = None
     fonte: str | None = None
@@ -164,6 +181,8 @@ class TarefaOut(ORMBase, TarefaBase):
 class ServicoBase(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
     preco: float = 0
+    preco_minimo: float | None = None
+    preco_maximo: float | None = None
     descricao: str | None = None
     ativo: bool = True
 
@@ -175,6 +194,8 @@ class ServicoCreate(ServicoBase):
 class ServicoUpdate(BaseModel):
     nome: str | None = None
     preco: float | None = None
+    preco_minimo: float | None = None
+    preco_maximo: float | None = None
     descricao: str | None = None
     ativo: bool | None = None
 
@@ -207,16 +228,53 @@ class OrcamentoEntrada(BaseModel):
     paginas: int = 1
     extras: list[str] = []
     desconto: float = 0
+    horas: int | None = None
+
+
+class ItemOrcamento(BaseModel):
+    id: str
+    nome: str
+    tipo: str  # fixo | por_pagina | percentual | mensal
+    quantidade: int = 1
+    valor: float = 0
+    total: float = 0
+    minimo: float = 0
+    total_minimo: float = 0
+    maximo: float = 0
+    total_maximo: float = 0
 
 
 class OrcamentoSaida(BaseModel):
+    tipo_site: str
     base: float
+    base_minimo: float
+    base_maximo: float
+    paginas_incluidas: int
+    paginas_extras: int
+    pagina_extra: float
+    pagina_extra_minimo: float
+    pagina_extra_maximo: float
     paginas_extra: float
-    extras: list[dict]
+    paginas_extra_minimo: float
+    paginas_extra_maximo: float
+    extras: list[ItemOrcamento]
     subtotal: float
+    subtotal_minimo: float
+    subtotal_maximo: float
+    desconto: float
     desconto_valor: float
     total: float
-    mensal: float
+    piso: float
+    teto: float
     faixa_min: float
     faixa_max: float
+    mensal: float
+    mensal_minimo: float
+    mensal_maximo: float
     horas_estimadas: int
+    valor_hora: float
+    valor_hora_piso: float
+    valor_hora_teto: float
+    valor_hora_minimo: float
+    valor_hora_ideal: float
+    desconto_maximo: float

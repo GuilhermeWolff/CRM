@@ -44,12 +44,33 @@ Para encerrar, feche as duas janelas abertas e rode `banco\stop.bat`.
   própria linha e exportação em CSV.
 - **Clientes** — cadastro com totais por cliente (fechado, em aberto, nº de negociações).
 - **Tarefas** — pendentes, atrasadas, de hoje e concluídas, com vínculo opcional a uma negociação.
-- **Orçamentos** — calculadora de preço (tipo de projeto, páginas, extras, desconto) que
-  cria a negociação com um clique + tabela de preços dos seus serviços.
+- **Orçamentos** — calculadora de preço com faixa de cada item (piso, alvo e teto de
+  mercado), horas estimadas e valor da sua hora; monta a proposta nos três níveis e abre
+  o cadastro completo já preenchido. Inclui a tabela de preços dos serviços com mínimo,
+  alvo e máximo.
+- **Novo cadastro** — tela única com cliente, projeto, escopo/variações, valores
+  (entrada, parcelas, forma de pagamento), funil e observações; mostra o card do funil
+  em tempo real ao lado.
 - **Gerenciar cada negociação** — linha do tempo de tudo que aconteceu, tarefas vinculadas
   e gerador de mensagens prontas para WhatsApp: proposta, follow-up, boas-vindas e cobrança.
 - **Configurações** — dados da empresa, meta mensal, backup/restauração em JSON, dados de
   exemplo e reset.
+
+---
+
+## Como o preço é calculado
+
+Cada item da tabela tem três referências: **piso** (nunca descer abaixo), **alvo** (preço
+normal de venda) e **teto** (o máximo que o mercado paga com escopo premium). A calculadora
+soma os itens e devolve o total nos três níveis, as horas estimadas e o valor da sua hora.
+
+- Páginas incluídas por tipo: Landing 1, Institucional 5, E-commerce 8, Sistema 4 telas.
+- Extras fixos, por página (copywriting) ou percentuais (entrega urgente).
+- Desconto máximo de 25%: acima disso, corte escopo em vez de preço.
+- Manutenção sugerida: 3% do projeto por mês, com piso de R$ 300.
+- Alerta quando a hora fica abaixo de R$ 90; entre R$ 90 e R$ 120 aparece como faixa de atenção.
+
+Os números ficam em `backend/app/constantes.py` (`TIPOS_PRECO` e `EXTRAS_CALCULADORA`).
 
 ---
 

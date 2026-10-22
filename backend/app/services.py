@@ -66,54 +66,165 @@ def resolver_cliente(
 # --------------------------------------------------------------------------- #
 # Orçamento
 # --------------------------------------------------------------------------- #
+def _mensal(total: float, regra: dict) -> float:
+    """Manutenção mensal: percentual do projeto, respeitando piso e teto."""
+    valor = total * float(regra["valor"]) / 100
+    return min(float(regra["maximo"]), max(float(regra["minimo"]), valor))
+
+
 def calcular_orcamento(entrada: schemas.OrcamentoEntrada) -> schemas.OrcamentoSaida:
-    base = C.BASE_POR_TIPO.get(entrada.tipo_site, C.BASE_POR_TIPO["Outro"])
+    tipo = entrada.tipo_site if entrada.tipo_site in C.TIPOS_PRECO else "Outro"
+    preco = C.TIPOS_PRECO[tipo]
 
-    paginas_extras = max(0, int(entrada.paginas) - C.PAGINAS_INCLUIDAS)
-    valor_paginas = paginas_extras * C.VALOR_POR_PAGINA_EXTRA
+    incluidas = int(preco["paginas_incluidas"])
+    paginas = max(1, int(entrada.paginas))
+    paginas_extras = max(0, paginas - incluidas)
 
-    subtotal = base + valor_paginas
-    mensal = 0.0
+    base = float(preco["base"])
+    base_minimo = float(preco["minimo"])
+    base_maximo = float(preco["maximo"])
+
+    paginas_extra = paginas_extras * float(preco["pagina_extra"])
+    paginas_extra_minimo = paginas_extras * float(preco["pagina_extra_minimo"])
+    paginas_extra_maximo = paginas_extras * float(preco["pagina_extra_maximo"])
+
+    subtotal = base + paginas_extra
+    subtotal_minimo = base_minimo + paginas_extra_minimo
+    subtotal_maximo = base_maximo + paginas_extra_maximo
+
     percentual = 0.0
-    escolhidos: list[dict] = []
+    percentual_minimo = 0.0
+    percentual_maximo = 0.0
+    regra_mensal: dict | None = None
+    itens: list[schemas.ItemOrcamento] = []
+    horas_extras = 0
 
     for extra in C.EXTRAS_CALCULADORA:
         if extra["id"] not in entrada.extras:
             continue
-        if extra["tipo"] == "mensal":
-            mensal += float(extra["valor"])
-            continue
-        if extra["tipo"] == "percentual":
-            percentual += float(extra["valor"])
-            escolhidos.append(
-                {"id": extra["id"], "nome": extra["nome"], "valor": float(extra["valor"]),
-                 "tipo": "percentual"}
+
+        tipo_extra = extra["tipo"]
+        horas = int(extra.get("horas", 0))
+
+        if tipo_extra == "mensal":
+            regra_mensal = extra
+            itens.append(
+                schemas.ItemOrcamento(
+                    id=extra["id"], nome=extra["nome"], tipo=tipo_extra,
+                    quantidade=1,
+                    valor=float(extra["valor"]),
+                    minimo=float(extra["minimo"]),
+                    maximo=float(extra["maximo"]),
+                )
             )
             continue
-        subtotal += float(extra["valor"])
-        escolhidos.append(
-            {"id": extra["id"], "nome": extra["nome"], "valor": float(extra["valor"]),
-             "tipo": "fixo"}
+
+        if tipo_extra == "percentual":
+            percentual += float(extra["valor"])
+            percentual_minimo += float(extra["minimo"])
+            percentual_maximo += float(extra["maximo"])
+            itens.append(
+                schemas.ItemOrcamento(
+                    id=extra["id"], nome=extra["nome"], tipo=tipo_extra,
+                    quantidade=1,
+                    valor=float(extra["valor"]),
+                    minimo=float(extra["minimo"]),
+                    maximo=float(extra["maximo"]),
+                )
+            )
+            continue
+
+        quantidade = paginas if tipo_extra == "por_pagina" else 1
+        horas_extras += horas * quantidade
+
+        valor = float(extra["valor"]) * quantidade
+        minimo = float(extra["minimo"]) * quantidade
+        maximo = float(extra["maximo"]) * quantidade
+
+        subtotal += valor
+        subtotal_minimo += minimo
+        subtotal_maximo += maximo
+
+        itens.append(
+            schemas.ItemOrcamento(
+                id=extra["id"], nome=extra["nome"], tipo=tipo_extra,
+                quantidade=quantidade,
+                valor=float(extra["valor"]), total=valor,
+                minimo=float(extra["minimo"]), total_minimo=minimo,
+                maximo=float(extra["maximo"]), total_maximo=maximo,
+            )
         )
 
-    subtotal = subtotal * (1 + percentual / 100)
-    desconto_valor = subtotal * (max(0.0, min(100.0, entrada.desconto)) / 100)
-    total = subtotal - desconto_valor
+    # Percentuais incidem sobre o subtotal (base + páginas + extras fixos)
+    parcial = subtotal
+    for item in itens:
+        if item.tipo == "percentual":
+            item.total = parcial * item.valor / 100
+            item.total_minimo = parcial * item.minimo / 100
+            item.total_maximo = parcial * item.maximo / 100
 
-    # Horas: estimativa grosseira de 250 reais por hora de trabalho
-    horas = round(total / 250)
+    subtotal *= 1 + percentual / 100
+    subtotal_minimo *= 1 + percentual_minimo / 100
+    subtotal_maximo *= 1 + percentual_maximo / 100
+
+    desconto = max(0.0, min(C.DESCONTO_MAXIMO, float(entrada.desconto or 0)))
+    fator = 1 - desconto / 100
+
+    total = subtotal * fator
+    piso = subtotal_minimo * fator
+    teto = subtotal_maximo * fator
+
+    mensal = mensal_minimo = mensal_maximo = 0.0
+    if regra_mensal:
+        mensal = _mensal(total, regra_mensal)
+        mensal_minimo = _mensal(piso, regra_mensal)
+        mensal_maximo = _mensal(teto, regra_mensal)
+        for item in itens:
+            if item.tipo == "mensal":
+                item.total = mensal
+                item.total_minimo = mensal_minimo
+                item.total_maximo = mensal_maximo
+
+    # Horas: padrão do tipo + extras; o usuário pode informar a própria estimativa
+    horas = int(entrada.horas) if entrada.horas and entrada.horas > 0 else (
+        int(preco["horas"]) + horas_extras + paginas_extras * 2
+    )
+    horas = max(1, horas)
 
     return schemas.OrcamentoSaida(
+        tipo_site=tipo,
         base=round(base, 2),
-        paginas_extra=round(valor_paginas, 2),
-        extras=escolhidos,
+        base_minimo=round(base_minimo, 2),
+        base_maximo=round(base_maximo, 2),
+        paginas_incluidas=incluidas,
+        paginas_extras=paginas_extras,
+        pagina_extra=float(preco["pagina_extra"]),
+        pagina_extra_minimo=float(preco["pagina_extra_minimo"]),
+        pagina_extra_maximo=float(preco["pagina_extra_maximo"]),
+        paginas_extra=round(paginas_extra, 2),
+        paginas_extra_minimo=round(paginas_extra_minimo, 2),
+        paginas_extra_maximo=round(paginas_extra_maximo, 2),
+        extras=itens,
         subtotal=round(subtotal, 2),
-        desconto_valor=round(desconto_valor, 2),
+        subtotal_minimo=round(subtotal_minimo, 2),
+        subtotal_maximo=round(subtotal_maximo, 2),
+        desconto=desconto,
+        desconto_valor=round(subtotal - total, 2),
         total=round(total, 2),
+        piso=round(piso, 2),
+        teto=round(teto, 2),
+        faixa_min=round(piso, 2),
+        faixa_max=round(teto, 2),
         mensal=round(mensal, 2),
-        faixa_min=round(total * 0.85, 2),
-        faixa_max=round(total * 1.2, 2),
-        horas_estimadas=int(horas),
+        mensal_minimo=round(mensal_minimo, 2),
+        mensal_maximo=round(mensal_maximo, 2),
+        horas_estimadas=horas,
+        valor_hora=round(total / horas, 2),
+        valor_hora_piso=round(piso / horas, 2),
+        valor_hora_teto=round(teto / horas, 2),
+        valor_hora_minimo=C.VALOR_HORA_MINIMO,
+        valor_hora_ideal=C.VALOR_HORA_IDEAL,
+        desconto_maximo=C.DESCONTO_MAXIMO,
     )
 
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { api } from './api'
 import { Icone, type NomeIcone } from './componentes/Icone'
 import { CRMProvider, useCRM } from './contexto'
+import { Cadastro } from './paginas/Cadastro'
 import { Clientes } from './paginas/Clientes'
 import { Configuracoes } from './paginas/Configuracoes'
 import { Negociacoes } from './paginas/Negociacoes'
@@ -21,6 +22,7 @@ const PAGINAS: Record<string, { titulo: string; sub: string }> = {
   '/tarefas': { titulo: 'Tarefas e follow-ups', sub: 'Não deixe ninguém sem resposta' },
   '/orcamentos': { titulo: 'Orçamentos', sub: 'Calculadora de preço e tabela de serviços' },
   '/configuracoes': { titulo: 'Configurações', sub: 'Empresa, meta mensal e backup dos dados' },
+  '/cadastro': { titulo: 'Novo cadastro', sub: 'Todas as informações da negociação em um só lugar' },
 }
 
 const MENU: { para: string; icone: NomeIcone; nome: string }[] = [
@@ -34,11 +36,18 @@ const MENU: { para: string; icone: NomeIcone; nome: string }[] = [
 ]
 
 function Shell() {
-  const { config, versao, abrirFormNegociacao } = useCRM()
+  const { config, versao } = useCRM()
   const local = useLocation()
+  const navegar = useNavigate()
   const [atrasados, setAtrasados] = useState(0)
   const [recolhida, setRecolhida] = useState(() => localStorage.getItem('crm-menu') === 'recolhido')
-  const pagina = PAGINAS[local.pathname] ?? { titulo: 'CRM', sub: '' }
+  const emCadastro = local.pathname.startsWith('/cadastro')
+  const pagina = emCadastro
+    ? {
+        titulo: local.pathname === '/cadastro' ? 'Novo cadastro' : 'Editar cadastro',
+        sub: 'Todas as informações da negociação em um só lugar',
+      }
+    : (PAGINAS[local.pathname] ?? { titulo: 'CRM', sub: '' })
 
   useEffect(() => {
     localStorage.setItem('crm-menu', recolhida ? 'recolhido' : 'aberto')
@@ -102,10 +111,12 @@ function Shell() {
             <div className="topo-sub">{pagina.sub}</div>
           </div>
           <div className="topo-acoes">
-            <button className="botao botao-primario" onClick={() => abrirFormNegociacao()}>
-              <Icone nome="mais" tamanho={16} />
-              Nova negociação
-            </button>
+            {!emCadastro && (
+              <button className="botao botao-primario" onClick={() => navegar('/cadastro')}>
+                <Icone nome="mais" tamanho={16} />
+                Nova negociação
+              </button>
+            )}
           </div>
         </header>
 
@@ -117,6 +128,8 @@ function Shell() {
           <Route path="/tarefas" element={<Tarefas />} />
           <Route path="/orcamentos" element={<Orcamentos />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/cadastro/:id" element={<Cadastro />} />
         </Routes>
       </main>
     </div>

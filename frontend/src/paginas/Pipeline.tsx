@@ -7,6 +7,13 @@ import { useToast } from '../toast'
 import type { Negociacao } from '../tipos'
 import { brl, brlCompacto, classe, diasAte, rotuloPrazo } from '../utils'
 
+function contarExtras(extras: string | null | undefined) {
+  return (extras ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean).length
+}
+
 export function Pipeline() {
   const { meta, versao, recarregar, abrirDetalhe, abrirFormNegociacao } = useCRM()
   const { avisar } = useToast()
@@ -132,12 +139,28 @@ export function Pipeline() {
                         {negociacao.tipo_site}
                         {negociacao.contato ? ` · ${negociacao.contato}` : ''}
                       </div>
+                      {(negociacao.paginas > 1 || negociacao.extras) && (
+                        <div className="dica">
+                          {negociacao.paginas} página(s)
+                          {contarExtras(negociacao.extras) > 0
+                            ? ` · ${contarExtras(negociacao.extras)} extra(s)`
+                            : ''}
+                        </div>
+                      )}
                       <div className="cartao-rodape">
                         <span className="cartao-valor">{brl(negociacao.valor)}</span>
                         <span className={classe('chip', atrasado ? 'chip-erro' : 'chip')}>
                           {dias === null ? 'sem follow-up' : rotuloPrazo(dias)}
                         </span>
                       </div>
+                      {negociacao.parcelas > 1 && (
+                        <div className="dica">
+                          {negociacao.parcelas}x de{' '}
+                          {brl(
+                            Math.max(0, negociacao.valor - (negociacao.entrada ?? 0)) / negociacao.parcelas,
+                          )}
+                        </div>
+                      )}
                       {negociacao.mensal > 0 && (
                         <div className="dica mt">+ {brl(negociacao.mensal)}/mês de manutenção</div>
                       )}

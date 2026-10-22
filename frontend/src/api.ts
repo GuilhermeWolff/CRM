@@ -74,10 +74,13 @@ export const api = {
     return requisitar<Negociacao[]>(`/api/negociacoes${query ? `?${query}` : ''}`)
   },
   negociacao: (id: number) => requisitar<NegociacaoDetalhe>(`/api/negociacoes/${id}`),
-  criarNegociacao: (dados: Partial<Negociacao> & { cliente_nome?: string | null }) =>
-    requisitar<Negociacao>('/api/negociacoes', comCorpo(dados)),
-  atualizarNegociacao: (id: number, dados: Partial<Negociacao>) =>
-    requisitar<Negociacao>(`/api/negociacoes/${id}`, comCorpo(dados, 'PUT')),
+  criarNegociacao: (
+    dados: Partial<Negociacao> & { cliente_nome?: string | null; segmento?: string | null; site?: string | null },
+  ) => requisitar<Negociacao>('/api/negociacoes', comCorpo(dados)),
+  atualizarNegociacao: (
+    id: number,
+    dados: Partial<Negociacao> & { cliente_nome?: string | null; segmento?: string | null; site?: string | null },
+  ) => requisitar<Negociacao>(`/api/negociacoes/${id}`, comCorpo(dados, 'PUT')),
   moverNegociacao: (id: number, estagio: string, motivo_perda?: string) =>
     requisitar<Negociacao>(
       `/api/negociacoes/${id}/mover`,

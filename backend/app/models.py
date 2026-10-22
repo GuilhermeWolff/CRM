@@ -58,6 +58,14 @@ class Negociacao(Base):
     valor: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     mensal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
 
+    # Escopo do projeto e condições comerciais
+    paginas: Mapped[int] = mapped_column(Integer, default=1)
+    extras: Mapped[str | None] = mapped_column(Text)  # ids separados por vírgula
+    desconto: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=0)  # percentual
+    entrada: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+    parcelas: Mapped[int] = mapped_column(Integer, default=1)
+    forma_pagamento: Mapped[str | None] = mapped_column(String(40))
+
     estagio: Mapped[str] = mapped_column(String(20), default="lead", index=True)
     probabilidade: Mapped[int] = mapped_column(Integer, default=10)
     fonte: Mapped[str | None] = mapped_column(String(60))
@@ -140,6 +148,8 @@ class Servico(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nome: Mapped[str] = mapped_column(String(120))
     preco: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+    preco_minimo: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    preco_maximo: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     descricao: Mapped[str | None] = mapped_column(Text)
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
 

@@ -1182,10 +1182,111 @@ h1, h2, h3, h4 {
   color: var(--accent-claro);
 }
 
+.niveis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.nivel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  background: var(--painel-2);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 9px 10px;
+  cursor: pointer;
+  color: var(--texto);
+  font: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.nivel:hover {
+  border-color: var(--accent);
+}
+
+.nivel.ativo {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--painel-2));
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.nivel-rotulo {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+
+.nivel-valor {
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.nivel .dica {
+  font-size: 10.5px;
+  line-height: 1.25;
+}
+
+.tabela-faixas {
+  font-size: 12px;
+}
+
+.tabela-faixas th {
+  padding: 6px 6px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.tabela-faixas td {
+  padding: 5px 6px;
+}
+
 .grade-extras {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+/* ---------------------------- Tela de cadastro --------------------------- */
+.cadastro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.cadastro-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cadastro-resumo {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.previa-cartao {
+  cursor: default;
+}
+
+.previa-cartao:hover {
+  border-color: var(--borda);
+  transform: none;
+}
+
+.datalist-cliente {
+  display: none;
 }
 
 /* ------------------------------- Diversos ------------------------------- */
@@ -1234,6 +1335,13 @@ h1, h2, h3, h4 {
 .texto-suave { color: var(--suave); }
 .texto-ok { color: var(--ok); }
 .texto-erro { color: var(--erro); }
+.texto-alerta { color: var(--alerta); }
+
+.aviso-neutro {
+  background: var(--painel-2);
+  border-color: var(--borda);
+  color: var(--texto);
+}
 .negrito { font-weight: 700; }
 .mini { font-size: 11.5px; }
 .mt { margin-top: 10px; }
@@ -1272,6 +1380,12 @@ h1, h2, h3, h4 {
     grid-template-columns: 1fr;
   }
   .calculadora-resultado {
+    position: static;
+  }
+  .cadastro {
+    grid-template-columns: 1fr;
+  }
+  .cadastro-resumo {
     position: static;
   }
 }

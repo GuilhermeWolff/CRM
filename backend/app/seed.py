@@ -17,14 +17,14 @@ def _d(dias: int) -> date:
 
 
 SERVICOS_EXEMPLO = [
-    ("Landing Page (1 página)", 1800, "Página única de conversão, formulário e WhatsApp."),
-    ("Site Institucional (até 5 páginas)", 3500, "Home, sobre, serviços, portfólio e contato."),
-    ("E-commerce / Loja Virtual", 7500, "Catálogo, carrinho, checkout e painel de pedidos."),
-    ("Sistema / Web App sob medida", 12000, "Área logada, banco de dados e regras de negócio."),
-    ("Manutenção mensal", 200, "Atualizações, backups e pequenos ajustes."),
-    ("SEO mensal", 450, "Otimização de conteúdo e acompanhamento de posições."),
-    ("Identidade visual básica", 700, "Logo, paleta e tipografia."),
-    ("Migração / evolução de site antigo", 1200, "Redesign e migração de conteúdo."),
+    ("Landing Page (1 página)", 1900, 1500, 3200, "Página única de conversão, formulário e WhatsApp."),
+    ("Site Institucional (até 5 páginas)", 4800, 3900, 8500, "Home, sobre, serviços, portfólio e contato."),
+    ("E-commerce / Loja Virtual", 8900, 7000, 18000, "Catálogo, carrinho, checkout e painel de pedidos."),
+    ("Sistema / Web App sob medida", 16000, 12000, 35000, "Área logada, banco de dados e regras de negócio."),
+    ("Manutenção mensal", 300, 300, 900, "Atualizações, backups e pequenos ajustes."),
+    ("SEO mensal", 450, 300, 1200, "Otimização de conteúdo e acompanhamento de posições."),
+    ("Identidade visual básica", 1200, 900, 2500, "Logo, paleta e tipografia."),
+    ("Migração / evolução de site antigo", 1200, 800, 3000, "Redesign e migração de conteúdo."),
 ]
 
 NEGOCIOS_EXEMPLO = [
@@ -175,8 +175,16 @@ def popular_dados(db: Session, limpar: bool = False) -> dict:
         )
 
     if not db.scalar(select(func.count(Servico.id))):
-        for nome, preco, descricao in SERVICOS_EXEMPLO:
-            db.add(Servico(nome=nome, preco=Decimal(preco), descricao=descricao))
+        for nome, preco, preco_minimo, preco_maximo, descricao in SERVICOS_EXEMPLO:
+            db.add(
+                Servico(
+                    nome=nome,
+                    preco=Decimal(preco),
+                    preco_minimo=Decimal(preco_minimo),
+                    preco_maximo=Decimal(preco_maximo),
+                    descricao=descricao,
+                )
+            )
     db.flush()
 
     clientes: dict[str, Cliente] = {}

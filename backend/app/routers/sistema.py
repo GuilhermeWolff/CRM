@@ -24,10 +24,17 @@ def listas_fixas() -> dict:
         "estagios": C.ESTAGIOS,
         "tipos_site": C.TIPOS_SITE,
         "fontes": C.FONTES,
+        "formas_pagamento": C.FORMAS_PAGAMENTO,
         "base_por_tipo": C.BASE_POR_TIPO,
+        "precos": C.TIPOS_PRECO,
+        "paginas_incluidas_por_tipo": C.PAGINAS_INCLUIDAS_POR_TIPO,
+        "horas_por_tipo": C.HORAS_POR_TIPO,
         "extras_calculadora": C.EXTRAS_CALCULADORA,
         "valor_por_pagina_extra": C.VALOR_POR_PAGINA_EXTRA,
         "paginas_incluidas": C.PAGINAS_INCLUIDAS,
+        "desconto_maximo": C.DESCONTO_MAXIMO,
+        "valor_hora_minimo": C.VALOR_HORA_MINIMO,
+        "valor_hora_ideal": C.VALOR_HORA_IDEAL,
     }
 
 
@@ -102,6 +109,12 @@ def exportar(db: Session = Depends(get_db)) -> dict:
                 "tipo_site": n.tipo_site,
                 "valor": float(n.valor or 0),
                 "mensal": float(n.mensal or 0),
+                "paginas": n.paginas,
+                "extras": n.extras,
+                "desconto": float(n.desconto or 0),
+                "entrada": float(n.entrada or 0),
+                "parcelas": n.parcelas,
+                "forma_pagamento": n.forma_pagamento,
                 "estagio": n.estagio,
                 "probabilidade": n.probabilidade,
                 "fonte": n.fonte,
@@ -127,7 +140,14 @@ def exportar(db: Session = Depends(get_db)) -> dict:
             for t in tarefas
         ],
         "servicos": [
-            {"nome": s.nome, "preco": float(s.preco or 0), "descricao": s.descricao, "ativo": s.ativo}
+            {
+                "nome": s.nome,
+                "preco": float(s.preco or 0),
+                "preco_minimo": float(s.preco_minimo) if s.preco_minimo is not None else None,
+                "preco_maximo": float(s.preco_maximo) if s.preco_maximo is not None else None,
+                "descricao": s.descricao,
+                "ativo": s.ativo,
+            }
             for s in servicos
         ],
     }
